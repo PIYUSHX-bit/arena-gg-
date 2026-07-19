@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARENA — Menu Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0D0A; --surface:#14160F; --surface-2:#1B1D15;
+    --line: rgba(237,234,226,0.08); --text:#EDEAE2; --muted:#8A8578;
+    --ember:#FF4A1C; --amber:#FFB020; --zone:#6C4FF2; --safe:#4ADE80;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:#000; font-family:'Inter', sans-serif; color:var(--text);}
+  .display{font-family:'Rajdhani', sans-serif; font-weight:700;}
+  .app{max-width:480px; margin:0 auto; background:var(--bg); min-height:100vh; position:relative;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
+  a{color:inherit; text-decoration:none;}
+  svg{display:block;}
+  .screen{display:none; padding-bottom:40px;}
+  .screen.active{display:block;}
+
+  .header{display:flex; align-items:center; gap:12px; padding:16px 20px; background:var(--surface); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5;}
+  .header h1{font-family:'Rajdhani',sans-serif; font-weight:600; font-size:20px;}
+  .header.center h1{margin:0 auto; padding-right:24px;}
+  .back-btn svg{width:20px; height:20px;}
+
+  /* MENU HOME */
+  .avatar-block{display:flex; flex-direction:column; align-items:center; padding:32px 0 24px;}
+  .avatar{width:96px; height:96px; border-radius:50%; background:var(--ember); border:4px solid var(--amber); display:flex; align-items:center; justify-content:center; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:38px;}
+  .username{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:24px; color:var(--ember); margin-top:16px;}
+
+  .stats-wrap{padding:0 20px 8px;}
+  .stats-card{background:var(--surface); border:1px solid var(--line); border-radius:10px; display:grid; grid-template-columns:1fr 1fr 1fr;}
+  .stat{text-align:center; padding:18px 4px; border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat-value{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:22px; color:var(--ember);}
+  .stat-label{font-size:11px; color:var(--muted); margin-top:4px;}
+  .stats-note{font-size:11px; color:var(--muted); text-align:center; margin-top:10px;}
+
+  .menu-list{padding:20px; display:flex; flex-direction:column; gap:10px;}
+  .menu-item{display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:15px 16px; width:100%; text-align:left;}
+  .menu-item-left{display:flex; align-items:center; gap:14px;}
+  .menu-item-left svg{width:19px; height:19px; color:var(--ember); flex-shrink:0;}
+  .menu-item span.label{font-size:15px;}
+  .chevron{color:var(--muted);}
+  .toggle{position:relative; width:44px; height:24px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); flex-shrink:0; transition:.2s;}
+  .toggle.on{background:var(--ember); border-color:var(--ember);}
+  .toggle-knob{position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--text); transition:.2s;}
+  .toggle.on .toggle-knob{transform:translateX(20px);}
+
+  /* SUB PAGE CONTENT */
+  .content{padding:24px 20px;}
+  .stub{display:flex; flex-direction:column; align-items:center; text-align:center; padding:40px 20px;}
+  .stub-icon{width:64px; height:64px; border-radius:50%; background:var(--surface-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; margin-bottom:16px;}
+  .stub-icon svg{width:26px; height:26px; color:var(--muted);}
+  .stub-title{font-weight:500; margin-bottom:8px;}
+  .stub-sub{color:var(--muted); font-size:14px; max-width:280px; line-height:1.5;}
+
+  .info-row{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:15px 16px; margin-bottom:10px;}
+  .info-row svg{width:19px; height:19px; flex-shrink:0;}
+  .info-row .t{font-size:14px; font-weight:500;}
+  .info-row .s{font-size:12px; color:var(--muted);}
+
+  .top-players{border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .tp-row{display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line);}
+  .tp-row:last-child{border-bottom:none;}
+  .tp-rank{font-family:'JetBrains Mono'; font-size:14px; color:var(--muted); width:24px;}
+  .tp-rank.top{color:var(--amber);}
+  .tp-name{font-size:14px; font-weight:600;}
+  .tp-sub{font-size:12px; color:var(--muted);}
+  .tp-earn{margin-left:auto; font-family:'JetBrains Mono'; font-size:12px; color:var(--amber);}
+
+  .faq-item{background:var(--surface); border:1px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden;}
+  .faq-q{width:100%; display:flex; justify-content:space-between; align-items:center; padding:15px 16px; text-align:left; font-size:14px; font-weight:500;}
+  .faq-q svg{width:16px; height:16px; color:var(--muted); transition:transform .2s; flex-shrink:0; margin-left:10px;}
+  .faq-item.open .faq-q svg{transform:rotate(180deg);}
+  .faq-a{display:none; padding:0 16px 16px; font-size:13.5px; color:var(--muted); line-height:1.6;}
+  .faq-item.open .faq-a{display:block;}
+
+  .about-p{font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:14px;}
+  .about-p.lead{color:var(--text);}
+
+  .disclaimer{background:rgba(255,176,32,0.1); border:1px solid rgba(255,176,32,0.3); border-radius:10px; padding:14px; font-size:12px; color:var(--amber); line-height:1.6; margin-bottom:20px;}
+  .legal-section{margin-bottom:18px;}
+  .legal-section h2{font-size:14px; margin-bottom:6px;}
+  .legal-section p{font-size:13.5px; color:var(--muted); line-height:1.6;}
+
+  .note{font-size:11px; color:var(--muted); margin-top:14px;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ MENU HOME ============ -->
+  <div class="screen active" id="screen-menu">
+    <div class="header">
+      <button class="back-btn" onclick="location.reload()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7M19 12H5"/></svg></button>
+      <h1>Menu</h1>
+    </div>
+
+    <div class="avatar-block">
+      <div class="avatar">P</div>
+      <div class="username">Piyush</div>
+    </div>
+
+    <div class="stats-wrap">
+      <div class="stats-card">
+        <div class="stat"><div class="stat-value">3</div><div class="stat-label">Matches Played</div></div>
+        <div class="stat"><div class="stat-value">—</div><div class="stat-label">Total Kills</div></div>
+        <div class="stat"><div class="stat-value">₹0</div><div class="stat-label">Total Earning</div></div>
+      </div>
+      <div class="stats-note">Kills &amp; prize earnings appear here once match results are tracked.</div>
+    </div>
+
+    <div class="menu-list">
+      <button class="menu-item" onclick="showScreen('profile')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span class="label">My Profile</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('wallet')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span class="label">My Wallet</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('stats')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><span class="label">My Statistics</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('top')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 4h3a2 2 0 0 1 2 2 5 5 0 0 1-5 5M7 4H4a2 2 0 0 0-2 2 5 5 0 0 0 5 5"/></svg><span class="label">Top Players</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('notif')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="label">Notifications</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('contact')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11a9 9 0 0 1 18 0v6a3 3 0 0 1-3 3h-1v-8h4M3 17v-6a3 3 0 0 1 3-3h0v8H5a3 3 0 0 1-2-2Z"/></svg><span class="label">Contact Us</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="event.stopPropagation()" id="notice-toggle-row">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="label">Importance Notice</span></span>
+        <span class="toggle" id="notice-toggle" onclick="toggleNotice()"><span class="toggle-knob"></span></span>
+      </button>
+      <button class="menu-item" onclick="showScreen('faq')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span class="label">FAQ</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('about')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="label">About Us</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('privacy')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="label">Privacy Policy</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('terms')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg><span class="label">Terms &amp; Conditions</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="alert('This would log you out and return to the landing page.')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg><span class="label">Logout</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ MY PROFILE (stub linking to real profile page already built) ============ -->
+  <div class="screen" id="screen-profile">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>My Profile</h1></div>
+    <div class="content">
+      <p style="color:var(--muted); font-size:14px; line-height:1.6;">This links to the full editable profile page (display name, Free Fire IGN/UID, stats) — already built separately as <code style="color:var(--ember);">ProfilePage.tsx</code>.</p>
+    </div>
+  </div>
+
+  <!-- ============ WALLET ============ -->
+  <div class="screen" id="screen-wallet">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>My Wallet</h1></div>
+    <div class="content stub">
+      <div class="stub-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></div>
+      <div class="stub-title">Wallet is coming soon</div>
+      <div class="stub-sub">Tournament payments already go through Razorpay. A full wallet — balance, add money, prize payouts, transaction history — is the next piece to build.</div>
+    </div>
+  </div>
+
+  <!-- ============ STATISTICS ============ -->
+  <div class="screen" id="screen-stats">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>My Statistics</h1></div>
+    <div class="content">
+      <div class="stats-card" style="margin-bottom:14px;">
+        <div class="stat"><div class="stat-value">3</div><div class="stat-label">Tournaments Joined</div></div>
+        <div class="stat"><div class="stat-value">4</div><div class="stat-label">Total Entries</div></div>
+        <div class="stat"><div class="stat-value">₹160</div><div class="stat-label">Total Spent</div></div>
+      </div>
+      <p class="note">Kill count, win rate, and K/D ratio show up here once match results are tracked per-player — needs a results system tied to each tournament's final standings, not built yet.</p>
+    </div>
+  </div>
+
+  <!-- ============ TOP PLAYERS ============ -->
+  <div class="screen" id="screen-top">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Top Players</h1></div>
+    <div class="content">
+      <div class="top-players">
+        <div class="tp-row"><span class="tp-rank top">01</span><div><div class="tp-name">Team Vortex</div><div class="tp-sub">4 wins · 62 eliminations</div></div><span class="tp-earn">₹31,200</span></div>
+        <div class="tp-row"><span class="tp-rank top">02</span><div><div class="tp-name">Ash Kings</div><div class="tp-sub">3 wins · 58 eliminations</div></div><span class="tp-earn">₹24,800</span></div>
+        <div class="tp-row"><span class="tp-rank top">03</span><div><div class="tp-name">Nightfall</div><div class="tp-sub">2 wins · 71 eliminations</div></div><span class="tp-earn">₹19,300</span></div>
+        <div class="tp-row"><span class="tp-rank">04</span><div><div class="tp-name">Ghost Protocol</div><div class="tp-sub">2 wins · 49 eliminations</div></div><span class="tp-earn">₹14,600</span></div>
+        <div class="tp-row"><span class="tp-rank">05</span><div><div class="tp-name">Redline</div><div class="tp-sub">1 win · 55 eliminations</div></div><span class="tp-earn">₹10,050</span></div>
+      </div>
+      <p class="note">Placeholder data — wire this to a real leaderboard query once match results are tracked.</p>
+    </div>
+  </div>
+
+  <!-- ============ NOTIFICATIONS ============ -->
+  <div class="screen" id="screen-notif">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Notifications</h1></div>
+    <div class="content stub">
+      <div class="stub-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div class="stub-title">No notifications yet</div>
+      <div class="stub-sub">Match reminders, room ID drops, and payment confirmations will show up here once notification delivery is built.</div>
+    </div>
+  </div>
+
+  <!-- ============ CONTACT ============ -->
+  <div class="screen" id="screen-contact">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Contact Us</h1></div>
+    <div class="content">
+      <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div><div class="t">Support Hours</div><div class="s">10 AM – 10 PM IST, every day</div></div></div>
+      <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="var(--zone)" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg><div><div class="t">Telegram (fastest reply)</div><div class="s">t.me/arenagg_support</div></div></div>
+      <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg><div><div class="t">Email</div><div class="s">support@arena.gg</div></div></div>
+      <p class="note">For payment issues, include your registered phone/email and the tournament name — it speeds up lookup significantly.</p>
+    </div>
+  </div>
+
+  <!-- ============ FAQ ============ -->
+  <div class="screen" id="screen-faq">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>FAQ</h1></div>
+    <div class="content" id="faq-list"></div>
+  </div>
+
+  <!-- ============ ABOUT ============ -->
+  <div class="screen" id="screen-about">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>About Us</h1></div>
+    <div class="content">
+      <p class="about-p lead">ARENA.GG runs real-cash Free Fire tournaments — Solo, Duo, and Squad — for players who want competition with something on the line, not just XP.</p>
+      <p class="about-p">Every match is server-verified: results come from the match server itself, not screenshots or self-reporting, so payouts are fast and disputes are rare.</p>
+      <p class="about-p">We're an independent platform and aren't affiliated with, endorsed by, or sponsored by Garena or Free Fire.</p>
+    </div>
+  </div>
+
+  <!-- ============ PRIVACY ============ -->
+  <div class="screen" id="screen-privacy">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Privacy Policy</h1></div>
+    <div class="content">
+      <div class="disclaimer">Placeholder text — not legal advice. Since ARENA.GG handles real payments and personal data, have this reviewed by a lawyer before publishing, especially for compliance with India's DPDP Act.</div>
+      <div class="legal-section"><h2>Information We Collect</h2><p>Account details, Free Fire IGN/UID, and payment transaction records via Razorpay. We don't store your card or UPI details directly.</p></div>
+      <div class="legal-section"><h2>How We Use It</h2><p>To run tournaments, process payments and payouts, and contact you about matches you've registered for.</p></div>
+      <div class="legal-section"><h2>Data Sharing</h2><p>We don't sell your data. Shared only with services required to operate the platform.</p></div>
+      <div class="legal-section"><h2>Your Rights</h2><p>Request account deletion or a data copy by contacting support.</p></div>
+    </div>
+  </div>
+
+  <!-- ============ TERMS ============ -->
+  <div class="screen" id="screen-terms">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Terms &amp; Conditions</h1></div>
+    <div class="content">
+      <div class="disclaimer">Placeholder text — not legal advice. Real-money skill-gaming platforms in India have state-level restrictions — get this reviewed by a lawyer before launch.</div>
+      <div class="legal-section"><h2>Eligibility</h2><p>You must be 18+, or the age of majority in your state.</p></div>
+      <div class="legal-section"><h2>Entry Fees & Refunds</h2><p>Non-refundable except when ARENA.GG cancels a tournament.</p></div>
+      <div class="legal-section"><h2>Fair Play</h2><p>Emulator misuse, teaming with opponents, or unauthorized software results in disqualification without refund.</p></div>
+      <div class="legal-section"><h2>Prize Payouts</h2><p>Credited after results are verified from the match server.</p></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function toggleNotice() {
+    document.getElementById('notice-toggle').classList.toggle('on');
+  }
+
+  const faqs = [
+    { q: "How do I get the room ID and password?", a: "It's sent automatically 15 minutes before the match starts, once you've checked in." },
+    { q: "What happens if I pay but don't get registered?", a: "This shouldn't happen — payment and registration are linked automatically. If it does, contact support with your payment ID." },
+    { q: "Can I get a refund after registering?", a: "Only if ARENA.GG cancels the tournament. Voluntary withdrawal isn't refundable since your slot is held for you." },
+    { q: "What if my squad member doesn't show up?", a: "You can still play with fewer players, but you can't swap in a replacement after registration closes." },
+    { q: "How are prize payouts sent?", a: "To your wallet after results are verified from the match server, usually within 24 hours." },
+    { q: "What counts as cheating?", a: "Restricted emulators, teaming with opponents, and unauthorized software all result in disqualification without refund." },
+  ];
+
+  const faqList = document.getElementById('faq-list');
+  faqs.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'faq-item';
+    div.innerHTML = `
+      <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        ${item.q}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-a">${item.a}</div>
+    `;
+    faqList.appendChild(div);
+  });
+</script>
+
+</body>
+</html>

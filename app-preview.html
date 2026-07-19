@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARENA — App Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0D0A; --surface:#14160F; --surface-2:#1B1D15;
+    --line: rgba(237,234,226,0.08); --text:#EDEAE2; --muted:#8A8578;
+    --ember:#FF4A1C; --amber:#FFB020; --zone:#6C4FF2; --safe:#4ADE80;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:#000; font-family:'Inter', sans-serif; color:var(--text);}
+  .display{font-family:'Rajdhani', sans-serif; font-weight:700;}
+  .app{max-width:480px; margin:0 auto; background:var(--bg); min-height:100vh; position:relative;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
+  a{color:inherit; text-decoration:none;}
+  svg{display:block;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+  .with-navbar{padding-bottom:78px;}
+
+  /* ===== shared header for pushed sub-pages ===== */
+  .header{display:flex; align-items:center; gap:12px; padding:16px 20px; background:var(--surface); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20;}
+  .header h1{font-family:'Rajdhani',sans-serif; font-weight:600; font-size:20px;}
+  .back-btn svg{width:20px; height:20px;}
+
+  /* ===== HOME: TOP BAR ===== */
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--surface); border-bottom:1px solid var(--line);}
+  .topbar-left{display:flex; align-items:center; gap:12px;}
+  .tb-avatar{width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, var(--zone), var(--ember)); display:flex; align-items:center; justify-content:center; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:18px;}
+  .tb-username{font-family:'Rajdhani',sans-serif; font-weight:600; font-size:20px;}
+  .topbar-right{display:flex; align-items:center; gap:12px;}
+  .wallet{display:flex; align-items:center; gap:6px; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:4px 12px 4px 4px;}
+  .wallet-coin{width:24px; height:24px; border-radius:50%; background:var(--amber); color:#0B0D0A; display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .wallet-amt{font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--amber);}
+  .bell{position:relative; width:40px; height:40px; border-radius:50%; background:var(--surface-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  .bell-dot{position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%; background:var(--ember);}
+
+  /* ===== HOME: RULES BANNER ===== */
+  .rules-banner{width:100%; display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--surface-2); border-bottom:1px solid var(--line); text-align:left;}
+  .rules-icon{flex-shrink:0; width:36px; height:36px; border-radius:6px; background:rgba(237,234,226,0.06); display:flex; align-items:center; justify-content:center;}
+  .rules-text-wrap{flex:1; min-width:0; overflow:hidden;}
+  .rules-text{display:inline-block; white-space:nowrap; font-size:13px; color:var(--text); animation:marquee 14s linear infinite;}
+  @keyframes marquee{0%{transform:translateX(100%);} 100%{transform:translateX(-100%);}}
+  .rule-section{margin-bottom:22px;}
+  .rule-section h2{font-family:'Rajdhani',sans-serif; font-weight:600; font-size:17px; color:var(--ember); margin-bottom:10px;}
+  .rule-list{display:flex; flex-direction:column; gap:8px;}
+  .rule-item{display:flex; gap:10px; font-size:13.5px; color:var(--muted); line-height:1.6;}
+  .rule-item .bullet{color:var(--ember); flex-shrink:0;}
+
+  /* ===== HOME: PROMO ===== */
+  .promo-wrap{padding:16px;}
+  .promo-card{position:relative; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:linear-gradient(135deg, var(--surface-2), var(--surface), var(--bg)); padding:24px; min-height:170px; display:flex; flex-direction:column; justify-content:space-between;}
+  .ring-decor{position:absolute; border-radius:50%; pointer-events:none;}
+  .ring1{width:160px; height:160px; right:-40px; top:-40px; border:1px solid rgba(108,79,242,0.2);}
+  .ring2{width:96px; height:96px; right:-16px; top:-16px; border:1px solid rgba(255,74,28,0.25);}
+  .promo-eyebrow{font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--amber); margin-bottom:6px;}
+  .promo-title{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:26px; line-height:1.1; margin-bottom:4px;}
+  .promo-sub{font-size:13px; color:var(--muted);}
+  .promo-actions{display:flex; align-items:center; justify-content:space-between; margin-top:16px; position:relative; z-index:1;}
+  .promo-cta{background:var(--zone); color:var(--text); font-size:14px; font-weight:500; padding:10px 20px; border-radius:999px;}
+  .promo-send{width:40px; height:40px; border-radius:50%; background:rgba(108,79,242,0.2); border:1px solid rgba(108,79,242,0.4); display:flex; align-items:center; justify-content:center;}
+  .dots{display:flex; justify-content:center; gap:6px; margin-top:12px;}
+  .dot{height:6px; border-radius:999px; background:var(--line); width:6px; transition:.2s;}
+  .dot.active{width:20px; background:var(--ember);}
+
+  /* ===== HOME: MY MATCHES ===== */
+  .section{padding:28px 16px 0;}
+  .section-title{font-family:'Rajdhani',sans-serif; font-weight:600; font-size:20px; margin-bottom:14px;}
+  .matches-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  .match-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:20px 8px; display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .match-icon{width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center;}
+  .match-icon.ongoing{background:rgba(74,222,128,0.15); color:var(--safe);}
+  .match-icon.upcoming{background:rgba(108,79,242,0.15); color:var(--zone);}
+  .match-icon.completed{background:rgba(255,176,32,0.15); color:var(--amber);}
+  .match-label{font-size:14px; font-weight:500;}
+
+  /* ===== HOME: ESPORTS GAMES ===== */
+  .games-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; padding-bottom:12px;}
+  .game-card{position:relative; border-radius:12px; overflow:hidden; aspect-ratio:4/3; padding:14px; display:flex; flex-direction:column; justify-content:space-between; text-align:left;}
+  .game-card.c1{background:linear-gradient(135deg, var(--ember), #7A1F0A);}
+  .game-card.c2{background:linear-gradient(135deg, var(--zone), #2E1A6B);}
+  .game-card.c3{background:linear-gradient(135deg, var(--amber), #7A4B00);}
+  .game-card.c4{background:linear-gradient(135deg, var(--safe), #0F5A32);}
+  .game-card.c5{background:linear-gradient(135deg, var(--safe), #2E1A6B);}
+  .game-card.c6{background:linear-gradient(135deg, var(--zone), #7A1F0A);}
+  .game-card.c7{background:linear-gradient(135deg, var(--amber), #7A1F0A);}
+  .game-card.c8{background:linear-gradient(135deg, var(--ember), #7A4B00);}
+  .game-sub{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; text-shadow:0 2px 8px rgba(0,0,0,0.4);}
+  .game-title{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:21px; line-height:1.15; text-shadow:0 2px 8px rgba(0,0,0,0.4);}
+  .game-footer{display:flex; align-items:center; justify-content:space-between;}
+  .game-category{font-size:11px; font-weight:600; letter-spacing:0.04em; color:rgba(237,234,226,0.9); text-shadow:0 1px 4px rgba(0,0,0,0.4);}
+  .game-live{display:flex; align-items:center; gap:5px; font-size:11px; background:rgba(0,0,0,0.3); border-radius:999px; padding:2px 8px; color:rgba(237,234,226,0.9);}
+  .live-dot{width:6px; height:6px; border-radius:50%; background:var(--safe);}
+
+  /* ===== BOTTOM NAV (Home only — matches reference, which shows no navbar on Menu) ===== */
+  .bottomnav{position:fixed; bottom:0; left:0; right:0; max-width:480px; margin:0 auto; display:flex; background:var(--surface); border-top:1px solid var(--line); padding:8px; z-index:30;}
+  .nav-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 0; color:var(--muted);}
+  .nav-item.active{color:var(--text);}
+  .nav-item.active svg{color:var(--ember); stroke:var(--ember);}
+  .nav-label{font-size:11px;}
+  .nav-underline{width:16px; height:2px; border-radius:2px; background:var(--ember); margin-top:2px;}
+
+  /* ===== MENU HOME ===== */
+  .avatar-block{display:flex; flex-direction:column; align-items:center; padding:32px 0 24px;}
+  .big-avatar{width:96px; height:96px; border-radius:50%; background:var(--ember); border:4px solid var(--amber); display:flex; align-items:center; justify-content:center; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:38px;}
+  .big-username{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:24px; color:var(--ember); margin-top:16px;}
+
+  .stats-wrap{padding:0 20px 8px;}
+  .stats-card{background:var(--surface); border:1px solid var(--line); border-radius:10px; display:grid; grid-template-columns:1fr 1fr 1fr;}
+  .stat{text-align:center; padding:18px 4px; border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat-value{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:22px; color:var(--ember);}
+  .stat-label{font-size:11px; color:var(--muted); margin-top:4px;}
+  .stats-note{font-size:11px; color:var(--muted); text-align:center; margin-top:10px;}
+
+  .menu-list{padding:20px; display:flex; flex-direction:column; gap:10px;}
+  .menu-item{display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:15px 16px; width:100%; text-align:left;}
+  .menu-item-left{display:flex; align-items:center; gap:14px;}
+  .menu-item-left svg{width:19px; height:19px; color:var(--ember); flex-shrink:0;}
+  .menu-item span.label{font-size:15px;}
+  .chevron{color:var(--muted);}
+  .toggle{position:relative; width:44px; height:24px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); flex-shrink:0; transition:.2s;}
+  .toggle.on{background:var(--ember); border-color:var(--ember);}
+  .toggle-knob{position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--text); transition:.2s;}
+  .toggle.on .toggle-knob{transform:translateX(20px);}
+
+  /* ===== SUB PAGE CONTENT ===== */
+  .content{padding:24px 20px;}
+  .stub{display:flex; flex-direction:column; align-items:center; text-align:center; padding:40px 20px;}
+  .stub-icon{width:64px; height:64px; border-radius:50%; background:var(--surface-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; margin-bottom:16px;}
+  .stub-icon svg{width:26px; height:26px; color:var(--muted);}
+  .stub-title{font-weight:500; margin-bottom:8px;}
+  .stub-sub{color:var(--muted); font-size:14px; max-width:280px; line-height:1.5;}
+
+  .info-row{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:15px 16px; margin-bottom:10px;}
+  .info-row svg{width:19px; height:19px; flex-shrink:0;}
+  .info-row .t{font-size:14px; font-weight:500;}
+  .info-row .s{font-size:12px; color:var(--muted);}
+
+  .top-players{border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .tp-row{display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line);}
+  .tp-row:last-child{border-bottom:none;}
+  .tp-rank{font-family:'JetBrains Mono'; font-size:14px; color:var(--muted); width:24px;}
+  .tp-rank.top{color:var(--amber);}
+  .tp-name{font-size:14px; font-weight:600;}
+  .tp-sub{font-size:12px; color:var(--muted);}
+  .tp-earn{margin-left:auto; font-family:'JetBrains Mono'; font-size:12px; color:var(--amber);}
+
+  .faq-item{background:var(--surface); border:1px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden;}
+  .faq-q{width:100%; display:flex; justify-content:space-between; align-items:center; padding:15px 16px; text-align:left; font-size:14px; font-weight:500;}
+  .faq-q svg{width:16px; height:16px; color:var(--muted); transition:transform .2s; flex-shrink:0; margin-left:10px;}
+  .faq-item.open .faq-q svg{transform:rotate(180deg);}
+  .faq-a{display:none; padding:0 16px 16px; font-size:13.5px; color:var(--muted); line-height:1.6;}
+  .faq-item.open .faq-a{display:block;}
+
+  .about-p{font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:14px;}
+  .about-p.lead{color:var(--text);}
+
+  .disclaimer{background:rgba(255,176,32,0.1); border:1px solid rgba(255,176,32,0.3); border-radius:10px; padding:14px; font-size:12px; color:var(--amber); line-height:1.6; margin-bottom:20px;}
+  .legal-section{margin-bottom:18px;}
+  .legal-section h2{font-size:14px; margin-bottom:6px;}
+  .legal-section p{font-size:13.5px; color:var(--muted); line-height:1.6;}
+
+  .note{font-size:11px; color:var(--muted); margin-top:14px;}
+
+  .nav-hint{background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:12px; color:var(--muted); margin:0 20px 4px; text-align:center;}
+
+  /* ===== MATCHES ===== */
+  .match-tabs{display:flex; border-bottom:1px solid var(--line); padding:0 20px;}
+  .match-tab{flex:1; padding:14px 0; text-align:center; font-size:14px; font-weight:500; color:var(--muted); border-bottom:2px solid transparent;}
+  .match-tab.active{color:var(--text); border-bottom-color:var(--ember);}
+  .match-list-card{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:12px;}
+  .ml-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;}
+  .ml-meta{font-size:11px; letter-spacing:0.08em; color:var(--muted); text-transform:uppercase;}
+  .ml-badge{font-size:10px; font-weight:500; padding:3px 9px; border-radius:999px; border:1px solid;}
+  .ml-badge.live{color:var(--safe); border-color:rgba(74,222,128,0.3); background:rgba(74,222,128,0.1);}
+  .ml-badge.upcoming{color:var(--zone); border-color:rgba(108,79,242,0.3); background:rgba(108,79,242,0.1);}
+  .ml-badge.completed{color:var(--muted); border-color:var(--line); background:rgba(138,133,120,0.1);}
+  .ml-title{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:19px; margin-bottom:4px;}
+  .ml-squad{font-size:13px; color:var(--muted); margin-bottom:12px;}
+  .ml-squad b{color:var(--text); font-weight:500;}
+  .ml-footer{display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1px solid var(--line); font-size:13px;}
+  .ml-footer .muted{color:var(--muted);}
+  .ml-footer .safe{color:var(--safe); font-weight:500;}
+
+  .lb-card{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:10px;}
+  .lb-top{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .lb-rank{font-family:'JetBrains Mono'; font-size:14px; color:var(--muted); width:22px;}
+  .lb-rank.top{color:var(--amber);}
+  .lb-avatar{width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13px; flex-shrink:0;}
+  .lb-name{flex:1; font-size:14px; font-weight:600;}
+  .lb-stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding-top:12px; border-top:1px solid var(--line); text-align:center;}
+  .lb-stat-value{font-family:'JetBrains Mono'; font-size:14px;}
+  .lb-stat-value.wins{color:var(--safe);}
+  .lb-stat-value.kills{color:var(--zone);}
+  .lb-stat-value.earn{color:var(--amber);}
+  .lb-stat-label{font-size:10px; color:var(--muted); margin-top:2px;}
+
+  /* ===== MATCHES EMPTY STATE ===== */
+  .search-empty{display:flex; flex-direction:column; align-items:center; text-align:center; padding:56px 20px 40px;}
+  .search-icon-wrap{position:relative; width:96px; height:96px; display:flex; align-items:center; justify-content:center; margin-bottom:22px;}
+  .search-ring{position:absolute; inset:0; border-radius:50%; border:1px solid rgba(108,79,242,0.4); animation:search-ping 1.8s cubic-bezier(0,0,0.2,1) infinite;}
+  .search-ring.delay{inset:8px; animation-delay:0.4s;}
+  @keyframes search-ping{0%{transform:scale(0.8); opacity:1;} 75%,100%{transform:scale(1.4); opacity:0;}}
+  .search-icon-core{position:relative; z-index:1; width:64px; height:64px; border-radius:50%; background:var(--surface-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  .search-title{font-family:'Rajdhani',sans-serif; font-weight:600; font-size:19px; margin-bottom:8px;}
+  .search-sub{font-size:13px; color:var(--muted); max-width:260px; margin-bottom:16px; line-height:1.5;}
+  .search-browse{color:var(--ember); font-size:13px;}
+
+  /* ===== WALLET ===== */
+  .wallet-card{position:relative; overflow:hidden; border:1px solid var(--line); border-radius:14px; padding:24px; background:linear-gradient(135deg, var(--surface-2), var(--surface), var(--bg)); margin-bottom:20px;}
+  .wallet-card::before{content:''; position:absolute; right:-32px; top:-32px; width:128px; height:128px; border-radius:50%; border:1px solid rgba(255,74,28,0.2);}
+  .wallet-label{display:flex; align-items:center; gap:6px; font-size:11px; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase; margin-bottom:8px; position:relative; z-index:1;}
+  .wallet-balance{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:38px; color:var(--amber); margin-bottom:18px; position:relative; z-index:1;}
+  .wallet-add-btn{display:inline-flex; align-items:center; gap:6px; background:var(--ember); color:var(--bg); font-weight:600; font-size:14px; padding:10px 20px; border-radius:6px; position:relative; z-index:1;}
+  .wallet-panel{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:20px;}
+  .wallet-panel-title{font-size:14px; font-weight:500; margin-bottom:12px;}
+  .quick-amounts{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px;}
+  .quick-amount{border:1px solid var(--line); border-radius:6px; padding:10px 0; font-family:'JetBrains Mono'; font-size:13px; text-align:center;}
+  .quick-amount:hover{border-color:var(--ember);}
+  .wallet-cancel{font-size:12px; color:var(--muted); margin-top:10px;}
+  .wallet-note{font-size:12px; color:var(--safe); background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.25); border-radius:8px; padding:10px 14px; margin-bottom:16px;}
+  .tx-row{display:flex; justify-content:space-between; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:8px;}
+  .tx-title{font-size:14px; font-weight:500;}
+  .tx-sub{font-size:11px; color:var(--muted); margin-top:2px;}
+  .tx-amt{font-family:'JetBrains Mono'; font-size:14px; flex-shrink:0;}
+  .tx-amt.credit{color:var(--safe);}
+  .tx-amt.debit{color:var(--ember);}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ HOME (dashboard) ============ -->
+  <div class="screen active with-navbar" id="screen-home">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="tb-avatar">P</div>
+        <span class="tb-username">Piyush</span>
+      </div>
+      <div class="topbar-right">
+        <div class="wallet"><span class="wallet-coin">₹</span><span class="wallet-amt">57</span></div>
+        <div class="bell">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <button class="rules-banner" onclick="showScreen('rules')">
+      <span class="rules-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8578" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span>
+      <span class="rules-text-wrap"><span class="rules-text">CLICK HERE TO READ ALL THE RULES 📌 Every player of Free Fire...</span></span>
+    </button>
+
+    <div class="promo-wrap">
+      <div class="promo-card">
+        <div class="ring-decor ring1"></div>
+        <div class="ring-decor ring2"></div>
+        <div style="position:relative; z-index:1;">
+          <div class="promo-eyebrow">Support · 10AM to 10PM</div>
+          <div class="promo-title">Need Help Fast?</div>
+          <div class="promo-sub">Our team replies to every ticket within minutes.</div>
+        </div>
+        <div class="promo-actions">
+          <button class="promo-cta">Contact Support</button>
+          <span class="promo-send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C4FF2" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span>
+        </div>
+      </div>
+      <div class="dots"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">My Matches</div>
+      <div class="matches-grid">
+        <button class="match-card" onclick="openMatches('ongoing')">
+          <span class="match-icon ongoing"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
+          <span class="match-label">Ongoing</span>
+        </button>
+        <button class="match-card" onclick="openMatches('upcoming')">
+          <span class="match-icon upcoming"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          <span class="match-label">Upcoming</span>
+        </button>
+        <button class="match-card" onclick="openMatches('completed')">
+          <span class="match-icon completed"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 12 2 2 4-4"/></svg></span>
+          <span class="match-label">Completed</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Esports Games</div>
+      <div class="games-grid">
+        <button class="game-card c1"><div><div class="game-sub">Free Fire</div><div class="game-title">Solo Survival Tournaments</div></div><div class="game-footer"><span class="game-category">BR SURVIVAL</span><span class="game-live"><span class="live-dot"></span>0</span></div></button>
+        <button class="game-card c2"><div><div class="game-sub">Free Fire</div><div class="game-title">BR Full Map Tournaments</div></div><div class="game-footer"><span class="game-category">BR FULL MAP</span><span class="game-live"><span class="live-dot"></span>0</span></div></button>
+        <button class="game-card c3"><div><div class="game-sub">Free Fire</div><div class="game-title">Clash Squad 1v1 Tournaments</div></div><div class="game-footer"><span class="game-category">CLASH SQUAD</span><span class="game-live"><span class="live-dot"></span>0</span></div></button>
+        <button class="game-card c4"><div><div class="game-sub">Free Fire</div><div class="game-title">Lone Wolf 1v1 Tournaments</div></div><div class="game-footer"><span class="game-category">LONE WOLF</span><span class="game-live"><span class="live-dot"></span>0</span></div></button>
+        <button class="game-card c5"><div><div class="game-sub">Free Fire</div><div class="game-title">Free Entry Tournaments</div></div><div class="game-footer"><span class="game-category">FREE ENTRY</span><span class="game-live"><span class="live-dot"></span>0</span></div></button>
+        <button class="game-card c6"><div><div class="game-sub">Free Fire</div><div class="game-title">Lone Wolf 2v2 Tournaments</div></div><div class="game-footer"><span class="game-category">LONE WOLF 2V2</span><span class="game-live"><span class="live-dot"></span>0</span></div></button>
+        <button class="game-card c7"><div><div class="game-sub">Free Fire</div><div class="game-title">Gun Pro Head Only 1v1</div></div><div class="game-footer"><span class="game-category">HEAD ONLY 1V1</span><span class="game-live"><span class="live-dot"></span>0</span></div></button>
+        <button class="game-card c8"><div><div class="game-sub">Free Fire</div><div class="game-title">BR Only Survival Tournaments</div></div><div class="game-footer"><span class="game-category">BR ONLY</span><span class="game-live"><span class="live-dot"></span>0</span></div></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MENU HOME ============ -->
+  <div class="screen" id="screen-menu">
+    <div class="header">
+      <button class="back-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7M19 12H5"/></svg></button>
+      <h1>Menu</h1>
+    </div>
+
+    <div class="nav-hint">← Tap this back arrow anytime to return Home</div>
+
+    <div class="avatar-block">
+      <div class="big-avatar">P</div>
+      <div class="big-username">Piyush</div>
+    </div>
+
+    <div class="stats-wrap">
+      <div class="stats-card">
+        <div class="stat"><div class="stat-value">3</div><div class="stat-label">Matches Played</div></div>
+        <div class="stat"><div class="stat-value">—</div><div class="stat-label">Total Kills</div></div>
+        <div class="stat"><div class="stat-value">₹0</div><div class="stat-label">Total Earning</div></div>
+      </div>
+      <div class="stats-note">Kills &amp; earnings update automatically once match results are recorded.</div>
+    </div>
+
+    <div class="menu-list">
+      <button class="menu-item" onclick="showScreen('profile')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span class="label">My Profile</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('wallet')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span class="label">My Wallet</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('stats')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><span class="label">My Statistics</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('top')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 4h3a2 2 0 0 1 2 2 5 5 0 0 1-5 5M7 4H4a2 2 0 0 0-2 2 5 5 0 0 0 5 5"/></svg><span class="label">Top Players</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('notif')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="label">Notifications</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('contact')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11a9 9 0 0 1 18 0v6a3 3 0 0 1-3 3h-1v-8h4M3 17v-6a3 3 0 0 1 3-3h0v8H5a3 3 0 0 1-2-2Z"/></svg><span class="label">Contact Us</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="event.stopPropagation()">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="label">Importance Notice</span></span>
+        <span class="toggle" id="notice-toggle" onclick="toggleNotice()"><span class="toggle-knob"></span></span>
+      </button>
+      <button class="menu-item" onclick="showScreen('faq')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span class="label">FAQ</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('about')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="label">About Us</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('privacy')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="label">Privacy Policy</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="showScreen('terms')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg><span class="label">Terms &amp; Conditions</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="menu-item" onclick="alert('This would log you out and return to the landing page.')">
+        <span class="menu-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg><span class="label">Logout</span></span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ WALLET ============ -->
+  <div class="screen" id="screen-wallet">
+    <div class="header"><button class="back-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>My Wallet</h1></div>
+    <div class="content">
+
+      <div class="wallet-card">
+        <div class="wallet-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          Balance
+        </div>
+        <div class="wallet-balance" id="wallet-balance">₹57</div>
+        <button class="wallet-add-btn" onclick="document.getElementById('wallet-add-panel').style.display='block'; this.style.display='none';">+ Add Money</button>
+      </div>
+
+      <div class="wallet-panel" id="wallet-add-panel" style="display:none;">
+        <div class="wallet-panel-title">Add money</div>
+        <div class="quick-amounts">
+          <button class="quick-amount" onclick="simulateTopup(50)">₹50</button>
+          <button class="quick-amount" onclick="simulateTopup(100)">₹100</button>
+          <button class="quick-amount" onclick="simulateTopup(200)">₹200</button>
+          <button class="quick-amount" onclick="simulateTopup(500)">₹500</button>
+        </div>
+        <div class="wallet-cancel" onclick="document.getElementById('wallet-add-panel').style.display='none'; document.querySelector('.wallet-add-btn').style.display='inline-flex';">Cancel</div>
+      </div>
+
+      <div class="wallet-note">This preview simulates payment instantly — the real app opens Razorpay Checkout and only credits your balance after a verified payment.</div>
+
+      <div class="wallet-panel-title">Transaction History</div>
+      <div id="wallet-tx-list"></div>
+    </div>
+  </div>
+
+  <!-- ============ THE RULES ============ -->
+  <div class="screen" id="screen-rules">
+    <div class="header"><button class="back-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>THE RULES</h1></div>
+    <div class="content">
+
+      <div class="rule-section">
+        <h2>Registration</h2>
+        <div class="rule-list">
+          <div class="rule-item"><span class="bullet">•</span><span>Enter your correct Free Fire IGN and UID at registration — mismatched details can get your entry rejected without refund.</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>Squad size must match the tournament mode exactly (Solo: 1, Duo: 2, Squad: 4).</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>Check in within the check-in window before the match starts, or your slot may be forfeited.</span></div>
+        </div>
+      </div>
+
+      <div class="rule-section">
+        <h2>Match Conduct</h2>
+        <div class="rule-list">
+          <div class="rule-item"><span class="bullet">•</span><span>Join the custom room using the exact in-game name you registered with.</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>Room ID and password are sent 15 minutes before the match — do not share them outside your squad.</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>Stream sniping, teaming with opposing squads, or intentionally feeding kills is grounds for disqualification.</span></div>
+        </div>
+      </div>
+
+      <div class="rule-section">
+        <h2>Fair Play</h2>
+        <div class="rule-list">
+          <div class="rule-item"><span class="bullet">•</span><span>Use of emulators is not allowed in mobile-only tournaments unless explicitly stated otherwise.</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>Any hacks, mod menus, macros, or third-party software that alters gameplay result in an immediate ban.</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>Multiple accounts entered by the same player into one tournament will have all related entries disqualified.</span></div>
+        </div>
+      </div>
+
+      <div class="rule-section">
+        <h2>Results &amp; Disputes</h2>
+        <div class="rule-list">
+          <div class="rule-item"><span class="bullet">•</span><span>Match results are pulled from the server — screenshots are not accepted as proof of placement or kills.</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>Disputes must be raised within 24 hours of the match ending, via Contact Us.</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>ARENA.GG's admin decision on disputes is final.</span></div>
+        </div>
+      </div>
+
+      <div class="rule-section">
+        <h2>Payouts</h2>
+        <div class="rule-list">
+          <div class="rule-item"><span class="bullet">•</span><span>Prize winnings are credited after results are verified — typically within 24 hours.</span></div>
+          <div class="rule-item"><span class="bullet">•</span><span>Payouts may be withheld pending investigation of a suspected rule violation.</span></div>
+        </div>
+      </div>
+
+      <p class="note" style="border-top:1px solid var(--line); padding-top:14px;">Breaking any of the above can result in disqualification, entry fee forfeiture, or an account ban depending on severity.</p>
+    </div>
+  </div>
+
+  <!-- ============ MATCHES (Ongoing/Upcoming/Completed) ============ -->
+  <div class="screen" id="screen-matches">
+    <div class="header"><button class="back-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>My Matches</h1></div>
+    <div class="match-tabs">
+      <button class="match-tab" id="tab-ongoing" onclick="selectMatchTab('ongoing')">Ongoing</button>
+      <button class="match-tab" id="tab-upcoming" onclick="selectMatchTab('upcoming')">Upcoming</button>
+      <button class="match-tab" id="tab-completed" onclick="selectMatchTab('completed')">Completed</button>
+    </div>
+    <div class="content" id="matches-list"></div>
+  </div>
+
+  <!-- ============ LEADERBOARD ============ -->
+  <div class="screen" id="screen-leaderboard">
+    <div class="header"><button class="back-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Leaderboard</h1></div>
+    <div class="content">
+      <div id="lb-list"></div>
+      <p class="note">Wins, kills, and earnings update once match results are recorded — new entries show 0 until then.</p>
+    </div>
+  </div>
+
+  <!-- ============ MY PROFILE ============ -->
+  <div class="screen" id="screen-profile">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>My Profile</h1></div>
+    <div class="content"><p style="color:var(--muted); font-size:14px; line-height:1.6;">This links to the full editable profile page (display name, Free Fire IGN/UID, stats) — already built separately as <code style="color:var(--ember);">ProfilePage.tsx</code>.</p></div>
+  </div>
+  <!-- ============ WALLET ============ -->
+  <div class="screen" id="screen-wallet">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>My Wallet</h1></div>
+    <div class="content stub">
+      <div class="stub-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></div>
+      <div class="stub-title">Wallet is coming soon</div>
+      <div class="stub-sub">Tournament payments already go through Razorpay. A full wallet — balance, add money, prize payouts, transaction history — is the next piece to build.</div>
+    </div>
+  </div>
+
+  <!-- ============ STATISTICS ============ -->
+  <div class="screen" id="screen-stats">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>My Statistics</h1></div>
+    <div class="content">
+      <div class="stats-card" style="margin-bottom:14px;">
+        <div class="stat"><div class="stat-value">3</div><div class="stat-label">Tournaments Joined</div></div>
+        <div class="stat"><div class="stat-value">4</div><div class="stat-label">Total Entries</div></div>
+        <div class="stat"><div class="stat-value">₹160</div><div class="stat-label">Total Spent</div></div>
+      </div>
+      <p class="note">Kill count, win rate, and K/D ratio show up here once match results are tracked per-player — needs a results system tied to each tournament's final standings, not built yet.</p>
+    </div>
+  </div>
+
+  <!-- ============ TOP PLAYERS ============ -->
+  <div class="screen" id="screen-top">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Top Players</h1></div>
+    <div class="content">
+      <div class="top-players">
+        <div class="tp-row"><span class="tp-rank top">01</span><div><div class="tp-name">Team Vortex</div><div class="tp-sub">9 tournaments entered</div></div><span class="tp-earn">₹640</span></div>
+        <div class="tp-row"><span class="tp-rank top">02</span><div><div class="tp-name">Ash Kings</div><div class="tp-sub">7 tournaments entered</div></div><span class="tp-earn">₹480</span></div>
+        <div class="tp-row"><span class="tp-rank top">03</span><div><div class="tp-name">Nightfall</div><div class="tp-sub">6 tournaments entered</div></div><span class="tp-earn">₹410</span></div>
+        <div class="tp-row"><span class="tp-rank">04</span><div><div class="tp-name">Ghost Protocol</div><div class="tp-sub">4 tournaments entered</div></div><span class="tp-earn">₹260</span></div>
+        <div class="tp-row"><span class="tp-rank">05</span><div><div class="tp-name">Piyush</div><div class="tp-sub">3 tournaments entered</div></div><span class="tp-earn">₹160</span></div>
+      </div>
+      <p class="note">Ranked by total entry fees invested across all tournaments.</p>
+    </div>
+  </div>
+
+  <!-- ============ NOTIFICATIONS ============ -->
+  <div class="screen" id="screen-notif">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Notifications</h1></div>
+    <div class="content stub">
+      <div class="stub-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div class="stub-title">No notifications yet</div>
+      <div class="stub-sub">Match reminders, room ID drops, and payment confirmations will show up here once notification delivery is built.</div>
+    </div>
+  </div>
+
+  <!-- ============ CONTACT ============ -->
+  <div class="screen" id="screen-contact">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Contact Us</h1></div>
+    <div class="content">
+      <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ember)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div><div class="t">Support Hours</div><div class="s">10 AM – 10 PM IST, every day</div></div></div>
+      <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="var(--zone)" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg><div><div class="t">Telegram (fastest reply)</div><div class="s">t.me/arenagg_support</div></div></div>
+      <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg><div><div class="t">Email</div><div class="s">support@arena.gg</div></div></div>
+      <p class="note">For payment issues, include your registered phone/email and the tournament name — it speeds up lookup significantly.</p>
+    </div>
+  </div>
+
+  <!-- ============ FAQ ============ -->
+  <div class="screen" id="screen-faq">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>FAQ</h1></div>
+    <div class="content" id="faq-list"></div>
+  </div>
+
+  <!-- ============ ABOUT ============ -->
+  <div class="screen" id="screen-about">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>About Us</h1></div>
+    <div class="content">
+      <p class="about-p lead">ARENA.GG runs real-cash Free Fire tournaments — Solo, Duo, and Squad — for players who want competition with something on the line, not just XP.</p>
+      <p class="about-p">Every match is server-verified: results come from the match server itself, not screenshots or self-reporting, so payouts are fast and disputes are rare.</p>
+      <p class="about-p">We're an independent platform and aren't affiliated with, endorsed by, or sponsored by Garena or Free Fire.</p>
+    </div>
+  </div>
+
+  <!-- ============ PRIVACY ============ -->
+  <div class="screen" id="screen-privacy">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Privacy Policy</h1></div>
+    <div class="content">
+      <div class="disclaimer">Placeholder text — not legal advice. Since ARENA.GG handles real payments and personal data, have this reviewed by a lawyer before publishing, especially for compliance with India's DPDP Act.</div>
+      <div class="legal-section"><h2>Information We Collect</h2><p>Account details, Free Fire IGN/UID, and payment transaction records via Razorpay. We don't store your card or UPI details directly.</p></div>
+      <div class="legal-section"><h2>How We Use It</h2><p>To run tournaments, process payments and payouts, and contact you about matches you've registered for.</p></div>
+      <div class="legal-section"><h2>Data Sharing</h2><p>We don't sell your data. Shared only with services required to operate the platform.</p></div>
+      <div class="legal-section"><h2>Your Rights</h2><p>Request account deletion or a data copy by contacting support.</p></div>
+    </div>
+  </div>
+
+  <!-- ============ TERMS ============ -->
+  <div class="screen" id="screen-terms">
+    <div class="header"><button class="back-btn" onclick="showScreen('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Terms &amp; Conditions</h1></div>
+    <div class="content">
+      <div class="disclaimer">Placeholder text — not legal advice. Real-money skill-gaming platforms in India have state-level restrictions — get this reviewed by a lawyer before launch.</div>
+      <div class="legal-section"><h2>Eligibility</h2><p>You must be 18+, or the age of majority in your state.</p></div>
+      <div class="legal-section"><h2>Entry Fees & Refunds</h2><p>Non-refundable except when ARENA.GG cancels a tournament.</p></div>
+      <div class="legal-section"><h2>Fair Play</h2><p>Emulator misuse, teaming with opponents, or unauthorized software results in disqualification without refund.</p></div>
+      <div class="legal-section"><h2>Prize Payouts</h2><p>Credited after results are verified from the match server.</p></div>
+    </div>
+  </div>
+
+  <!-- ============ BOTTOM NAV — shown only on Home, matching the reference (Menu has no navbar) ============ -->
+  <div class="bottomnav" id="bottomnav">
+    <div class="nav-item" onclick="showScreen('wallet')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span class="nav-label">Earn</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('leaderboard')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 4h3a2 2 0 0 1 2 2 5 5 0 0 1-5 5M7 4H4a2 2 0 0 0-2 2 5 5 0 0 0 5 5"/></svg>
+      <span class="nav-label">Leaderboard</span>
+    </div>
+    <div class="nav-item active" id="nav-home">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+      <span class="nav-label">Home</span>
+      <span class="nav-underline"></span>
+    </div>
+    <div class="nav-item" onclick="showScreen('menu')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      <span class="nav-label">Menu</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    // Bottom nav only shows on Home — matches the reference screenshots,
+    // where Menu (and its sub-pages) have no navbar, just the back arrow.
+    document.getElementById('bottomnav').style.display = (name === 'home') ? 'flex' : 'none';
+    window.scrollTo(0, 0);
+  }
+
+  function toggleNotice() {
+    document.getElementById('notice-toggle').classList.toggle('on');
+  }
+
+  // ===== WALLET =====
+  // In-memory only — this preview simulates the add-money flow instantly.
+  // The real app calls create-wallet-topup-order, opens actual Razorpay
+  // Checkout, then verifies the payment signature before crediting anything.
+  let walletBalance = 57;
+  let walletTx = [
+    { title: 'Tournament entry', sub: 'Bermuda Blitz #14 · 3 Jul, 8:05 PM', amount: -40, type: 'debit' },
+    { title: 'Added money', sub: 'Wallet top-up · 1 Jul, 6:20 PM', amount: 100, type: 'credit' },
+  ];
+
+  function renderWallet() {
+    document.getElementById('wallet-balance').textContent = '₹' + walletBalance.toLocaleString('en-IN');
+    const list = document.getElementById('wallet-tx-list');
+    if (walletTx.length === 0) {
+      list.innerHTML = '<p class="note" style="text-align:center; padding:20px 0;">No transactions yet — add money to get started.</p>';
+      return;
+    }
+    list.innerHTML = walletTx.map(tx => `
+      <div class="tx-row">
+        <div>
+          <div class="tx-title">${tx.title}</div>
+          <div class="tx-sub">${tx.sub}</div>
+        </div>
+        <span class="tx-amt ${tx.type}">${tx.amount >= 0 ? '+' : '-'}₹${Math.abs(tx.amount)}</span>
+      </div>
+    `).join('');
+  }
+
+  function simulateTopup(amount) {
+    walletBalance += amount;
+    walletTx.unshift({ title: 'Added money', sub: 'Wallet top-up · just now', amount: amount, type: 'credit' });
+    renderWallet();
+    document.getElementById('wallet-add-panel').style.display = 'none';
+    document.querySelector('.wallet-add-btn').style.display = 'inline-flex';
+  }
+
+  renderWallet();
+
+  // ===== MATCHES =====
+  const MOCK_MATCHES = {
+    ongoing: [
+      { name: "Bermuda Blitz #14", squad: "Team Vortex", mode: "Squad", map: "Bermuda", time: "Today, 8:30 PM", status: "live" },
+    ],
+    upcoming: [
+      { name: "Ember Duos Weekly", squad: "Ash Kings", mode: "Duo", map: "Kalahari", time: "Tomorrow, 6:00 PM", status: "upcoming" },
+      { name: "Zone Runner Solo", squad: "Solo Queue", mode: "Solo", map: "Purgatory", time: "Fri, 9:45 PM", status: "upcoming" },
+    ],
+    completed: [
+      { name: "Weekend Warfare #9", squad: "Nightfall", mode: "Squad", map: "Bermuda", time: "3 Jul, 8:00 PM", status: "completed" },
+    ],
+  };
+
+  const BADGE_LABEL = { live: "Live Now", upcoming: "Upcoming", completed: "Completed" };
+
+  let currentMatchTab = 'ongoing';
+
+  function openMatches(status) {
+    selectMatchTab(status);
+    showScreen('matches');
+  }
+
+  function selectMatchTab(status) {
+    currentMatchTab = status;
+    document.querySelectorAll('.match-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + status).classList.add('active');
+    renderMatches(status);
+  }
+
+  const TAB_LABELS = { ongoing: 'Ongoing', upcoming: 'Upcoming', completed: 'Completed' };
+
+  function renderMatches(status) {
+    const list = document.getElementById('matches-list');
+    const matches = MOCK_MATCHES[status] || [];
+
+    if (matches.length === 0) {
+      list.innerHTML = `
+        <div class="search-empty">
+          <div class="search-icon-wrap">
+            <span class="search-ring"></span>
+            <span class="search-ring delay"></span>
+            <span class="search-icon-core">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6C4FF2" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8.5"/><path d="M14 2v6h6"/><circle cx="16.5" cy="17.5" r="2.5"/><path d="m19.5 20.5-1.5-1.5"/></svg>
+            </span>
+          </div>
+          <div class="search-title">Matches Not Found!</div>
+          <div class="search-sub">You don't have any ${TAB_LABELS[status].toLowerCase()} matches — only tournaments you've actually registered and paid for show up here.</div>
+          <button class="search-browse" onclick="showScreen('home')">Browse tournaments →</button>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = matches.map(m => `
+      <div class="match-list-card">
+        <div class="ml-top">
+          <span class="ml-meta">${m.mode} · ${m.map}</span>
+          <span class="ml-badge ${m.status}">${BADGE_LABEL[m.status]}</span>
+        </div>
+        <div class="ml-title">${m.name}</div>
+        <div class="ml-squad">Squad: <b>${m.squad}</b></div>
+        <div class="ml-footer">
+          <span class="muted">${m.time}</span>
+          ${m.status === 'live' ? '<span class="safe">Room ID sent →</span>' : m.status === 'upcoming' ? '<span class="muted">Room ID drops 15 min before</span>' : '<span class="muted">Match ended</span>'}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  const faqs = [
+    { q: "How do I get the room ID and password?", a: "It's sent automatically 15 minutes before the match starts, once you've checked in." },
+    { q: "What happens if I pay but don't get registered?", a: "This shouldn't happen — payment and registration are linked automatically. If it does, contact support with your payment ID." },
+    { q: "Can I get a refund after registering?", a: "Only if ARENA.GG cancels the tournament. Voluntary withdrawal isn't refundable since your slot is held for you." },
+    { q: "What if my squad member doesn't show up?", a: "You can still play with fewer players, but you can't swap in a replacement after registration closes." },
+    { q: "How are prize payouts sent?", a: "To your wallet after results are verified from the match server, usually within 24 hours." },
+    { q: "What counts as cheating?", a: "Restricted emulators, teaming with opponents, and unauthorized software all result in disqualification without refund." },
+  ];
+
+  const faqList = document.getElementById('faq-list');
+  faqs.forEach((item) => {
+    const div = document.createElement('div');
+    div.className = 'faq-item';
+    div.innerHTML = `
+      <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        ${item.q}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-a">${item.a}</div>
+    `;
+    faqList.appendChild(div);
+  });
+
+  // ===== LEADERBOARD =====
+  // Mirrors the real page's shape: ranked by wins/kills/prize earnings —
+  // real columns on `entries`, filled in by an admin after each match
+  // completes. Values below are illustrative only.
+  const MOCK_LEADERBOARD = [
+    { name: "Team Vortex", color: "#FF4A1C", wins: 4, kills: 62, earnings: 31200 },
+    { name: "Ash Kings", color: "#6C4FF2", wins: 3, kills: 58, earnings: 24800 },
+    { name: "Nightfall", color: "#FFB020", wins: 2, kills: 71, earnings: 19300 },
+    { name: "Ghost Protocol", color: "#4ADE80", wins: 2, kills: 49, earnings: 14600 },
+    { name: "Piyush", color: "#FF4A1C", wins: 1, kills: 12, earnings: 5000 },
+    { name: "Redline", color: "#6C4FF2", wins: 1, kills: 55, earnings: 10050 },
+  ];
+
+  const lbList = document.getElementById('lb-list');
+  MOCK_LEADERBOARD.forEach((row, i) => {
+    const rank = i + 1;
+    const div = document.createElement('div');
+    div.className = 'lb-card';
+    div.innerHTML = `
+      <div class="lb-top">
+        <span class="lb-rank ${rank <= 3 ? 'top' : ''}">${String(rank).padStart(2, '0')}</span>
+        <div class="lb-avatar" style="background:${row.color};">${row.name.charAt(0).toUpperCase()}</div>
+        <div class="lb-name">${row.name}</div>
+      </div>
+      <div class="lb-stats">
+        <div><div class="lb-stat-value wins">${row.wins}</div><div class="lb-stat-label">Wins</div></div>
+        <div><div class="lb-stat-value kills">${row.kills}</div><div class="lb-stat-label">Kills</div></div>
+        <div><div class="lb-stat-value earn">₹${row.earnings.toLocaleString('en-IN')}</div><div class="lb-stat-label">Earnings</div></div>
+      </div>
+    `;
+    lbList.appendChild(div);
+  });
+</script>
+
+</body>
+</html>
