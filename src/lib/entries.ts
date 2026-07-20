@@ -44,6 +44,7 @@ function mapTournamentRow(row: TournamentRow): Tournament {
       hour: "numeric",
       minute: "2-digit",
     }),
+    startsAtIso: row.starts_at,
     slotsTotal: row.slots_total,
     slotsFilled: row.slots_filled,
     slotsLeft: row.slots_total - row.slots_filled,
@@ -170,6 +171,34 @@ export async function fetchTournamentRoster(
   }));
 
   return { roster, error: null };
+}
+
+export interface TournamentRoomInfo {
+  roomId: string | null;
+  roomPassword: string | null;
+}
+
+// RLS on tournament_rooms (0020) restricts reads to confirmed entrants
+// of this tournament + admins — a non-entrant calling this just gets no
+// row back, no error, so the UI naturally shows nothing to unregistered
+// players without needing to check permission first.
+export async function fetchTournamentRoom(
+  tournamentId: string
+): Promise<{ room: TournamentRoomInfo | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("tournament_rooms")
+    .select("room_id, room_password")
+    .eq("tournament_id", tournamentId)
+    .maybeSingle();
+
+  if (error) {
+    return { room: null, error: error.message };
+  }
+
+  return {
+    room: data ? { roomId: data.room_id, roomPassword: data.room_password } : null,
+    error: null,
+  };
 }
 
 export async function createEntry(params: {

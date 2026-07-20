@@ -27,7 +27,8 @@ export interface Tournament {
   bannerImageUrl: string | null;
   status: TournamentStatus;
   isActive: boolean;
-  startsAt: string; // human-readable for now, ISO string once wired to Supabase
+  startsAt: string; // human-readable, for display
+  startsAtIso: string; // raw ISO, for time comparisons (e.g. room password reveal)
   slotsTotal: number;
   slotsFilled: number;
   slotsLeft?: number; // if undefined, card shows "Filling" instead of a slot count

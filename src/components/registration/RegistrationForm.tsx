@@ -9,6 +9,7 @@ import type { Tournament, PlayerInfo } from "../../types/tournament";
 import SquadMemberInput from "./SquadMemberInput";
 import PrizeDetails from "./PrizeDetails";
 import TournamentRoster from "./TournamentRoster";
+import RoomDetails from "./RoomDetails";
 
 interface RegistrationFormProps {
   tournament: Tournament;
@@ -194,6 +195,8 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
           </button>
         </div>
 
+        <RoomDetails tournamentId={tournament.id} startsAtIso={tournament.startsAtIso} />
+
         <TournamentRoster tournamentId={tournament.id} />
       </div>
     );
@@ -215,6 +218,8 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
             View My Matches →
           </button>
         </div>
+
+        <RoomDetails tournamentId={tournament.id} startsAtIso={tournament.startsAtIso} />
 
         <TournamentRoster tournamentId={tournament.id} />
       </div>

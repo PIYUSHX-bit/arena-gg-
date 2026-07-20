@@ -49,10 +49,13 @@ export default function TournamentRoster({ tournamentId }: TournamentRosterProps
               <span className="font-mono text-[11px] text-muted w-4 shrink-0 pt-0.5">
                 {i + 1}
               </span>
-              <div className="min-w-0">
-                <div className="text-xs font-medium text-ink truncate">
-                  {entry.players.map((p) => p.ign).join(", ")}
-                </div>
+              <div className="min-w-0 flex flex-col gap-0.5">
+                {entry.players.map((p, j) => (
+                  <div key={j} className="text-xs truncate">
+                    <span className="font-medium text-ink">{p.ign}</span>
+                    <span className="text-muted"> · UID {p.uid}</span>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
