@@ -251,6 +251,22 @@ export async function payEntryPrize(
   return { error: error?.message ?? null };
 }
 
+export async function broadcastNotification(
+  title: string,
+  body: string
+): Promise<{ recipientCount: number | null; error: string | null }> {
+  const { data, error } = await supabase.rpc("broadcast_notification", {
+    p_title: title,
+    p_body: body,
+  });
+
+  if (error) {
+    return { recipientCount: null, error: error.message };
+  }
+
+  return { recipientCount: data as number, error: null };
+}
+
 export interface PendingWithdrawal {
   id: string;
   userId: string;

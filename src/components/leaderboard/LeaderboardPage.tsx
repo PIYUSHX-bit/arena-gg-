@@ -1,11 +1,64 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { ArrowLeft, Trophy, Coins, Crosshair, Award } from "lucide-react";
 import { fetchLeaderboard } from "../../lib/leaderboard";
 import type { LeaderboardRow } from "../../types/leaderboard";
 
 function formatRupees(amount: number): string {
   return `₹${amount.toLocaleString("en-IN")}`;
+}
+
+interface TopPlayersColumnProps {
+  title: string;
+  icon: typeof Trophy;
+  accent: string;
+  rows: LeaderboardRow[];
+  valueOf: (row: LeaderboardRow) => string;
+}
+
+function TopPlayersColumn({
+  title,
+  icon: Icon,
+  accent,
+  rows,
+  valueOf,
+}: TopPlayersColumnProps) {
+  return (
+    <div className="bg-surface border border-line rounded-lg p-3">
+      <div className="flex items-center gap-1.5 mb-3">
+        <Icon size={13} className={accent} />
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted truncate">
+          {title}
+        </span>
+      </div>
+      <div className="flex flex-col gap-2.5">
+        {rows.length === 0 && (
+          <span className="text-[11px] text-muted">No data yet</span>
+        )}
+        {rows.map((row, i) => (
+          <div key={`${row.displayName}-${i}`} className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] text-muted w-3 shrink-0">
+              {i + 1}
+            </span>
+            <div
+              className="w-5 h-5 rounded-full flex items-center justify-center font-display font-bold text-[10px] shrink-0"
+              style={{ backgroundColor: row.avatarColor }}
+            >
+              {row.displayName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-medium truncate">
+                {row.displayName}
+              </div>
+              <div className={`text-[10px] font-mono ${accent}`}>
+                {valueOf(row)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function LeaderboardPage() {
@@ -16,7 +69,10 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchLeaderboard(20).then(({ rows: r, error: err }) => {
+    // Larger pool than the combined list below needs, so a player who
+    // tops kills/wins but isn't in the top 20 by earnings still shows up
+    // in those columns — these three are independent rankings.
+    fetchLeaderboard(100).then(({ rows: r, error: err }) => {
       if (cancelled) return;
       if (err) setError(err);
       else setRows(r);
@@ -26,6 +82,21 @@ export default function LeaderboardPage() {
       cancelled = true;
     };
   }, []);
+
+  const topEarners = useMemo(
+    () => [...rows].sort((a, b) => b.totalEarnings - a.totalEarnings).slice(0, 5),
+    [rows]
+  );
+  const topKillers = useMemo(
+    () => [...rows].sort((a, b) => b.totalKills - a.totalKills).slice(0, 5),
+    [rows]
+  );
+  const topWinners = useMemo(
+    () => [...rows].sort((a, b) => b.wins - a.wins).slice(0, 5),
+    [rows]
+  );
+
+  const combinedRows = rows.slice(0, 20);
 
   return (
     <div className="min-h-screen bg-base text-ink font-body max-w-[480px] mx-auto pb-10">
@@ -55,8 +126,34 @@ export default function LeaderboardPage() {
         )}
 
         {!loading && !error && rows.length > 0 && (
+          <div className="grid grid-cols-3 gap-2.5 mb-6">
+            <TopPlayersColumn
+              title="Top Earners"
+              icon={Coins}
+              accent="text-amber"
+              rows={topEarners}
+              valueOf={(row) => formatRupees(row.totalEarnings)}
+            />
+            <TopPlayersColumn
+              title="Most Kills"
+              icon={Crosshair}
+              accent="text-zone"
+              rows={topKillers}
+              valueOf={(row) => `${row.totalKills} kills`}
+            />
+            <TopPlayersColumn
+              title="Most Wins"
+              icon={Award}
+              accent="text-safe"
+              rows={topWinners}
+              valueOf={(row) => `${row.wins} wins`}
+            />
+          </div>
+        )}
+
+        {!loading && !error && rows.length > 0 && (
           <div className="flex flex-col gap-2.5">
-            {rows.map((row, i) => {
+            {combinedRows.map((row, i) => {
               const rank = i + 1;
               return (
                 <div

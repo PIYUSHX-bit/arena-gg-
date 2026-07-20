@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, CheckCircle2, Wallet, Trophy, ArrowDownToLine } from "lucide-react";
+import { Bell, CheckCircle2, Wallet, Trophy, ArrowDownToLine, Megaphone } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -16,6 +16,7 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   payment: Wallet,
   prize: Trophy,
   withdrawal: ArrowDownToLine,
+  announcement: Megaphone,
 };
 
 const TYPE_COLOR: Record<NotificationType, string> = {
@@ -24,6 +25,7 @@ const TYPE_COLOR: Record<NotificationType, string> = {
   payment: "text-amber",
   prize: "text-amber",
   withdrawal: "text-zone",
+  announcement: "text-ember",
 };
 
 function formatDate(iso: string): string {

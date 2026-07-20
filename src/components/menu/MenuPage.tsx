@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Wallet, BarChart3, Trophy, Bell, Headphones, HelpCircle, Info, Lock, ShieldCheck, Power, ShieldAlert } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { fetchProfile, fetchProfileStats, updateProfile } from "../../lib/profile";
+import { fetchRules } from "../../lib/rules";
 import type { Profile, ProfileStats } from "../../types/profile";
 import MenuListItem from "./MenuListItem";
+import RulesBanner from "../dashboard/RulesBanner";
 
 export default function MenuPage() {
   const { user, signOut } = useAuth();
@@ -12,11 +14,15 @@ export default function MenuPage() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<ProfileStats | null>(null);
+  const [bannerText, setBannerText] = useState("");
 
   useEffect(() => {
     if (!user) return;
     fetchProfile(user.id).then(({ profile: p }) => setProfile(p));
     fetchProfileStats(user.id).then(({ stats: s }) => setStats(s));
+    fetchRules().then(({ rules }) => {
+      if (rules) setBannerText(rules.bannerText);
+    });
   }, [user]);
 
   async function handleToggleImportantNotice(next: boolean) {
@@ -52,6 +58,10 @@ export default function MenuPage() {
           Menu
         </h1>
       </div>
+
+      {bannerText && (
+        <RulesBanner text={bannerText} onClick={() => navigate("/terms")} />
+      )}
 
       {/* Avatar + username */}
       <div className="flex flex-col items-center pt-8 pb-6">

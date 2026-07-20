@@ -6,13 +6,25 @@ import { fetchIsAdmin } from "../../lib/admin";
 import WithdrawalRequestsTab from "./WithdrawalRequestsTab";
 import AdminTournamentsTab from "./AdminTournamentsTab";
 import AdminPayoutsTab from "./AdminPayoutsTab";
+import AdminRulesTab from "./AdminRulesTab";
+import AdminAnnouncementTab from "./AdminAnnouncementTab";
+import AdminBroadcastTab from "./AdminBroadcastTab";
 
-type Tab = "withdrawals" | "tournaments" | "payouts";
+type Tab =
+  | "withdrawals"
+  | "tournaments"
+  | "payouts"
+  | "rules"
+  | "announcement"
+  | "broadcast";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "tournaments", label: "Matches" },
   { id: "payouts", label: "Payouts" },
   { id: "withdrawals", label: "Withdrawals" },
+  { id: "rules", label: "Rules" },
+  { id: "announcement", label: "Banner" },
+  { id: "broadcast", label: "Notify" },
 ];
 
 export default function AdminPage() {
@@ -41,12 +53,12 @@ export default function AdminPage() {
         <h1 className="font-display font-semibold text-xl">Admin Panel</h1>
       </div>
 
-      <div className="flex border-b border-line px-5">
+      <div className="flex overflow-x-auto border-b border-line px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-3.5 text-sm font-medium border-b-2 transition-colors ${
+            className={`shrink-0 px-4 py-3.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
               activeTab === tab.id
                 ? "border-ember text-ink"
                 : "border-transparent text-muted"
@@ -68,6 +80,11 @@ export default function AdminPage() {
         {isAdmin === true && activeTab === "withdrawals" && (
           <WithdrawalRequestsTab />
         )}
+        {isAdmin === true && activeTab === "rules" && <AdminRulesTab />}
+        {isAdmin === true && activeTab === "announcement" && (
+          <AdminAnnouncementTab />
+        )}
+        {isAdmin === true && activeTab === "broadcast" && <AdminBroadcastTab />}
       </div>
     </div>
   );

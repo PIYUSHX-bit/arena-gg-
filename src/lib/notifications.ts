@@ -5,7 +5,8 @@ export type NotificationType =
   | "registration"
   | "payment"
   | "prize"
-  | "withdrawal";
+  | "withdrawal"
+  | "announcement";
 
 export interface AppNotification {
   id: string;

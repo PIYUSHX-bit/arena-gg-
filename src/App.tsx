@@ -7,7 +7,6 @@ import DashboardPage from "./components/dashboard/DashboardPage";
 import ProfilePage from "./components/profile/ProfilePage";
 import MatchesPage from "./components/matches/MatchesPage";
 import LeaderboardPage from "./components/leaderboard/LeaderboardPage";
-import RulesPage from "./components/dashboard/RulesPage";
 import MenuPage from "./components/menu/MenuPage";
 import WalletPage from "./components/wallet/WalletPage";
 import StatisticsPage from "./components/menu/StatisticsPage";
@@ -38,7 +37,6 @@ export default function App() {
           <Route path="/profile" element={protect(<ProfilePage />)} />
           <Route path="/matches" element={protect(<MatchesPage />)} />
           <Route path="/leaderboard" element={protect(<LeaderboardPage />)} />
-          <Route path="/rules" element={protect(<RulesPage />)} />
           <Route path="/menu" element={protect(<MenuPage />)} />
           <Route path="/wallet" element={protect(<WalletPage />)} />
           <Route path="/statistics" element={protect(<StatisticsPage />)} />

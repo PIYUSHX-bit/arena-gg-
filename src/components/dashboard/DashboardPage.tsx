@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Send } from "lucide-react";
 import TopBar from "./TopBar";
@@ -9,10 +9,16 @@ import EsportsGames from "./EsportsGames";
 import BottomNav, { type NavTab } from "./BottomNav";
 import type { MatchStatus } from "../../types/dashboard";
 import { GAME_MODES } from "../../lib/gameModes";
+import { fetchAnnouncement } from "../../lib/announcement";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<NavTab>("home");
+  const [announcement, setAnnouncement] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchAnnouncement().then(({ text }) => setAnnouncement(text));
+  }, []);
 
   function handleTabChange(tab: NavTab) {
     setActiveTab(tab);
@@ -41,10 +47,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-base text-ink font-body max-w-[480px] mx-auto pb-20">
       <TopBar />
 
-      <RulesBanner
-        text="CLICK HERE TO READ ALL THE RULES 📌🎮 Every player of Free Fire..."
-        onClick={() => navigate("/rules")}
-      />
+      {announcement && <RulesBanner text={announcement} />}
 
       <PromoCarousel
         slides={[

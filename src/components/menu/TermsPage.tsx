@@ -1,6 +1,18 @@
+import { useEffect, useState } from "react";
+import { fetchRules, type RuleSection } from "../../lib/rules";
 import SubPageShell from "./SubPageShell";
 
 export default function TermsPage() {
+  const [sections, setSections] = useState<RuleSection[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRules().then(({ rules }) => {
+      if (rules) setSections(rules.sections);
+      setLoading(false);
+    });
+  }, []);
+
   return (
     <SubPageShell title="Terms & Conditions">
       <div className="bg-amber/10 border border-amber/30 rounded-lg px-4 py-3 mb-6">
@@ -55,6 +67,29 @@ export default function TermsPage() {
           </p>
         </section>
       </div>
+
+      {!loading && sections.length > 0 && (
+        <div className="flex flex-col gap-5 mt-8 pt-6 border-t border-line">
+          <h2 className="font-display font-semibold text-lg text-ember -mb-1">
+            Tournament Rules
+          </h2>
+          {sections.map((section) => (
+            <section key={section.title}>
+              <h3 className="text-ink font-semibold mb-1.5">
+                {section.title}
+              </h3>
+              <ul className="flex flex-col gap-2">
+                {section.points.map((point) => (
+                  <li key={point} className="flex gap-2.5 text-sm text-muted leading-relaxed">
+                    <span className="text-ember shrink-0">•</span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
     </SubPageShell>
   );
 }
