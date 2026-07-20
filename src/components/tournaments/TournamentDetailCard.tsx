@@ -41,11 +41,10 @@ export default function TournamentDetailCard({
 
   return (
     <div className="bg-surface border border-line rounded-xl overflow-hidden">
-      {/* Banner — sized to roughly half the card's height, not just a
-          thin 16:9 strip. Falls back to the trophy placeholder both when
-          no image is set and when the saved URL fails to load (e.g. a
+      {/* Banner — falls back to the trophy placeholder both when no
+          image is set and when the saved URL fails to load (e.g. a
           non-image link saved before direct upload existed). */}
-      <div className="aspect-square bg-gradient-to-br from-surface-2 via-surface to-base flex items-center justify-center overflow-hidden">
+      <div className="aspect-[16/9] bg-gradient-to-br from-surface-2 via-surface to-base flex items-center justify-center overflow-hidden">
         {showImage ? (
           <img
             src={bannerImageUrl}

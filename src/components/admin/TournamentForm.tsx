@@ -338,7 +338,7 @@ export default function TournamentForm({
             <img
               src={bannerImageUrl}
               alt="Banner preview"
-              className="w-full aspect-square object-cover"
+              className="w-full aspect-[16/9] object-cover"
             />
             <div className="flex gap-2 p-2 bg-surface-2">
               <button
@@ -363,7 +363,7 @@ export default function TournamentForm({
             type="button"
             onClick={() => bannerInputRef.current?.click()}
             disabled={bannerUploading}
-            className="w-full aspect-square rounded-lg border border-dashed border-line bg-surface-2 flex flex-col items-center justify-center gap-1.5 text-muted disabled:opacity-50"
+            className="w-full aspect-[16/9] rounded-lg border border-dashed border-line bg-surface-2 flex flex-col items-center justify-center gap-1.5 text-muted disabled:opacity-50"
           >
             <ImagePlus size={22} />
             <span className="text-xs">
