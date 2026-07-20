@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { createEntry } from "../../lib/entries";
-import { supabase } from "../../lib/supabaseClient";
-import { openRazorpayCheckout } from "../../lib/razorpay";
+import { createEntry, fetchMyEntryForTournament } from "../../lib/entries";
 import { fetchProfile, updateProfile } from "../../lib/profile";
+import { fetchWalletBalance, payEntryFromWallet } from "../../lib/wallet";
 import { PLAYERS_PER_MODE } from "../../types/tournament";
 import type { Tournament, PlayerInfo } from "../../types/tournament";
 import SquadMemberInput from "./SquadMemberInput";
 import PrizeDetails from "./PrizeDetails";
+import TournamentRoster from "./TournamentRoster";
 
 interface RegistrationFormProps {
   tournament: Tournament;
 }
 
-type Step = "roster" | "payment" | "done";
+type Step = "checking" | "roster" | "payment" | "already-joined" | "done";
 
 function emptyPlayer(): PlayerInfo {
   return { ign: "", uid: "" };
@@ -28,12 +28,14 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
   const [players, setPlayers] = useState<PlayerInfo[]>(
     Array.from({ length: playerCount }, emptyPlayer)
   );
-  const [step, setStep] = useState<Step>("roster");
+  const [step, setStep] = useState<Step>("checking");
   const [entryId, setEntryId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   const totalDue = tournament.entryFee * playerCount;
+  const hasEnoughBalance = walletBalance !== null && walletBalance >= totalDue;
 
   // Cache the saved values so handleRosterSubmit can tell whether the
   // player typed something new that's worth writing back to the profile.
@@ -58,6 +60,37 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // entries has a unique (tournament_id, user_id) constraint, so a
+  // second registration attempt would otherwise just fail with a
+  // constraint-violation error after filling out the whole form. Check
+  // upfront instead: resume a pending payment, or show "already joined".
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    fetchMyEntryForTournament(tournament.id, user.id).then(({ entry }) => {
+      if (cancelled) return;
+
+      if (entry?.status === "confirmed") {
+        setStep("already-joined");
+      } else if (entry?.status === "pending_payment") {
+        setEntryId(entry.entryId);
+        setStep("payment");
+      } else {
+        setStep("roster");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, tournament.id]);
+
+  useEffect(() => {
+    if (!user || step !== "payment") return;
+    fetchWalletBalance(user.id).then(({ balance }) => setWalletBalance(balance));
+  }, [user, step]);
 
   if (!user) {
     return (
@@ -120,84 +153,70 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     setStep("payment");
   }
 
+  // Wallet is the primary payment path while Razorpay isn't live yet —
+  // see 0030_pay_entry_from_wallet.sql. Swap this back to the Razorpay
+  // flow once that's ready.
   async function handlePayment() {
-    if (!user) return;
+    if (!user || !entryId) return;
     setError(null);
     setSubmitting(true);
 
-    try {
-      const { data: orderData, error: orderError } =
-        await supabase.functions.invoke("create-razorpay-order", {
-          body: { entryId },
-        });
+    const { error: payError } = await payEntryFromWallet(entryId);
 
-      if (orderError || orderData?.error) {
-        throw new Error(orderData?.error ?? orderError?.message ?? "Could not start payment");
-      }
+    setSubmitting(false);
 
-      const { orderId, amount, currency, keyId } = orderData;
-
-      await openRazorpayCheckout({
-        key: keyId,
-        amount,
-        currency,
-        order_id: orderId,
-        name: "ARENA.GG",
-        description: tournament.name,
-        prefill: {
-          email: user.email ?? undefined,
-          contact: user.phone ?? undefined,
-        },
-        theme: { color: "#FF4A1C" },
-        onSuccess: async (response) => {
-          const { data: verifyData, error: verifyError } =
-            await supabase.functions.invoke("verify-razorpay-payment", {
-              body: {
-                entryId,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              },
-            });
-
-          setSubmitting(false);
-
-          if (verifyError || verifyData?.error) {
-            setError(
-              verifyData?.error ??
-                "Payment succeeded but verification failed — contact support with your payment ID: " +
-                  response.razorpay_payment_id
-            );
-            return;
-          }
-
-          setStep("done");
-        },
-        onDismiss: () => {
-          // User closed the Razorpay widget without paying
-          setSubmitting(false);
-        },
-      });
-    } catch (err) {
-      setSubmitting(false);
-      setError(err instanceof Error ? err.message : "Payment failed to start.");
+    if (payError) {
+      setError(payError);
+      return;
     }
+
+    setStep("done");
+  }
+
+  if (step === "checking") {
+    return <p className="text-center text-muted text-sm py-8">Loading...</p>;
+  }
+
+  if (step === "already-joined") {
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="text-center py-6 border border-safe/30 bg-safe/10 rounded-lg">
+          <p className="text-safe text-lg mb-2">You're already in ✓</p>
+          <p className="text-muted text-sm px-4">
+            You've already registered for {tournament.name}. Room ID drops
+            15 minutes before start.
+          </p>
+          <button
+            onClick={() => navigate("/matches?status=upcoming")}
+            className="text-ember text-sm hover:underline mt-3"
+          >
+            View My Matches →
+          </button>
+        </div>
+
+        <TournamentRoster tournamentId={tournament.id} />
+      </div>
+    );
   }
 
   if (step === "done") {
     return (
-      <div className="text-center py-8">
-        <p className="text-safe text-lg mb-2">You're in the zone.</p>
-        <p className="text-muted text-sm mb-6">
-          You're registered for {tournament.name}. Room ID drops 15 minutes
-          before start.
-        </p>
-        <button
-          onClick={() => navigate("/matches?status=upcoming")}
-          className="text-ember text-sm hover:underline"
-        >
-          View My Matches →
-        </button>
+      <div className="flex flex-col gap-5">
+        <div className="text-center py-8">
+          <p className="text-safe text-lg mb-2">You're in the zone.</p>
+          <p className="text-muted text-sm mb-6">
+            You're registered for {tournament.name}. Room ID drops 15 minutes
+            before start.
+          </p>
+          <button
+            onClick={() => navigate("/matches?status=upcoming")}
+            className="text-ember text-sm hover:underline"
+          >
+            View My Matches →
+          </button>
+        </div>
+
+        <TournamentRoster tournamentId={tournament.id} />
       </div>
     );
   }
@@ -222,7 +241,26 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
               ₹{totalDue.toLocaleString("en-IN")}
             </span>
           </div>
+          <div className="flex justify-between text-sm pt-3 mt-3 border-t border-line">
+            <span className="text-muted">Wallet Balance</span>
+            <span className={hasEnoughBalance ? "text-safe" : "text-ember"}>
+              {walletBalance === null ? "—" : `₹${walletBalance.toLocaleString("en-IN")}`}
+            </span>
+          </div>
         </div>
+
+        {walletBalance !== null && !hasEnoughBalance && (
+          <p className="text-sm text-ember bg-ember/10 border border-ember/30 rounded px-3 py-2">
+            Not enough balance to cover this entry.{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/wallet")}
+              className="underline"
+            >
+              Add money to your wallet →
+            </button>
+          </p>
+        )}
 
         {error && (
           <p className="text-sm text-ember bg-ember/10 border border-ember/30 rounded px-3 py-2">
@@ -232,10 +270,10 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
 
         <button
           onClick={handlePayment}
-          disabled={submitting}
+          disabled={submitting || !hasEnoughBalance}
           className="bg-ember text-base font-semibold text-[15px] px-8 py-3.5 rounded transition-transform hover:-translate-y-0.5 disabled:opacity-50"
         >
-          {submitting ? "Processing..." : `Pay ₹${totalDue.toLocaleString("en-IN")}`}
+          {submitting ? "Processing..." : `Pay ₹${totalDue.toLocaleString("en-IN")} from Wallet`}
         </button>
         <button
           onClick={() => setStep("roster")}
@@ -243,39 +281,45 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
         >
           ← Edit roster
         </button>
+
+        <TournamentRoster tournamentId={tournament.id} />
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleRosterSubmit} className="flex flex-col gap-5">
-      <div className="flex flex-col gap-4">
-        {players.map((player, i) => (
-          <SquadMemberInput
-            key={i}
-            index={i}
-            value={player}
-            onChange={(value) => updatePlayer(i, value)}
-            isSelf={i === 0}
-          />
-        ))}
-      </div>
+    <div className="flex flex-col gap-5">
+      <form onSubmit={handleRosterSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
+          {players.map((player, i) => (
+            <SquadMemberInput
+              key={i}
+              index={i}
+              value={player}
+              onChange={(value) => updatePlayer(i, value)}
+              isSelf={i === 0}
+            />
+          ))}
+        </div>
 
-      {error && (
-        <p className="text-sm text-ember bg-ember/10 border border-ember/30 rounded px-3 py-2">
-          {error}
-        </p>
-      )}
+        {error && (
+          <p className="text-sm text-ember bg-ember/10 border border-ember/30 rounded px-3 py-2">
+            {error}
+          </p>
+        )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="bg-ember text-base font-semibold text-[15px] px-8 py-3.5 rounded transition-transform hover:-translate-y-0.5 disabled:opacity-50"
-      >
-        {submitting ? "Saving roster..." : "Continue to Payment"}
-      </button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="bg-ember text-base font-semibold text-[15px] px-8 py-3.5 rounded transition-transform hover:-translate-y-0.5 disabled:opacity-50"
+        >
+          {submitting ? "Saving roster..." : "Continue to Payment"}
+        </button>
 
-      <PrizeDetails tiers={tournament.prizeDistribution} />
-    </form>
+        <PrizeDetails tiers={tournament.prizeDistribution} />
+      </form>
+
+      <TournamentRoster tournamentId={tournament.id} />
+    </div>
   );
 }

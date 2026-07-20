@@ -108,6 +108,70 @@ export async function fetchTournamentsByCategory(
   return { tournaments: (data as TournamentRow[]).map(mapTournamentRow), error: null };
 }
 
+export interface MyEntryStatus {
+  entryId: string;
+  status: "pending_payment" | "confirmed" | "cancelled";
+}
+
+// Checks whether the current user already has an entry for this
+// tournament — entries has a unique (tournament_id, user_id) constraint,
+// so this also tells the registration form whether to resume a pending
+// payment or show "already joined" instead of the roster form.
+export async function fetchMyEntryForTournament(
+  tournamentId: string,
+  userId: string
+): Promise<{ entry: MyEntryStatus | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("entries")
+    .select("id, status")
+    .eq("tournament_id", tournamentId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    return { entry: null, error: error.message };
+  }
+
+  return {
+    entry: data ? { entryId: data.id, status: data.status } : null,
+    error: null,
+  };
+}
+
+export interface RosterEntry {
+  squadName: string;
+  players: PlayerInfo[];
+  createdAt: string;
+}
+
+interface RosterRow {
+  squad_name: string;
+  players: PlayerInfo[];
+  created_at: string;
+}
+
+// Public participant list for a match — confirmed entries only, via the
+// get_tournament_roster RPC since entries has no public select policy.
+export async function fetchTournamentRoster(
+  tournamentId: string
+): Promise<{ roster: RosterEntry[]; error: string | null }> {
+  const { data, error } = await supabase.rpc("get_tournament_roster", {
+    p_tournament_id: tournamentId,
+  });
+
+  if (error) {
+    return { roster: [], error: error.message };
+  }
+
+  const roster = (data as RosterRow[]).map((row) => ({
+    squadName: row.squad_name,
+    players: row.players,
+    createdAt: row.created_at,
+  }));
+
+  return { roster, error: null };
+}
+
 export async function createEntry(params: {
   tournamentId: string;
   userId: string;

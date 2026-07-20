@@ -84,6 +84,16 @@ export async function createWalletTopupOrder(amount: number): Promise<{
   };
 }
 
+export async function payEntryFromWallet(
+  entryId: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc("pay_entry_from_wallet", {
+    p_entry_id: entryId,
+  });
+
+  return { error: error?.message ?? null };
+}
+
 export async function requestWithdrawal(
   amount: number,
   upiId: string
