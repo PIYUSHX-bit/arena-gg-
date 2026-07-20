@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Trophy } from "lucide-react";
 import type { Tournament } from "../../types/tournament";
 import { getGameModeById } from "../../lib/gameModes";
@@ -35,14 +36,21 @@ export default function TournamentDetailCard({
   const fillPct = slotsTotal > 0 ? (slotsFilled / slotsTotal) * 100 : 0;
   const canJoin = status === "upcoming" && slotsLeft > 0;
 
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = bannerImageUrl && !imageFailed;
+
   return (
     <div className="bg-surface border border-line rounded-xl overflow-hidden">
-      {/* Banner */}
-      <div className="aspect-[16/9] bg-gradient-to-br from-surface-2 via-surface to-base flex items-center justify-center overflow-hidden">
-        {bannerImageUrl ? (
+      {/* Banner — sized to roughly half the card's height, not just a
+          thin 16:9 strip. Falls back to the trophy placeholder both when
+          no image is set and when the saved URL fails to load (e.g. a
+          non-image link saved before direct upload existed). */}
+      <div className="aspect-square bg-gradient-to-br from-surface-2 via-surface to-base flex items-center justify-center overflow-hidden">
+        {showImage ? (
           <img
             src={bannerImageUrl}
             alt={name}
+            onError={() => setImageFailed(true)}
             className="w-full h-full object-cover"
           />
         ) : (

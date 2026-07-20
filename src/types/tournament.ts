@@ -26,6 +26,7 @@ export interface Tournament {
   category: string | null; // e.g. "br-survival" — matches a GameModeCard id
   bannerImageUrl: string | null;
   status: TournamentStatus;
+  isActive: boolean;
   startsAt: string; // human-readable for now, ISO string once wired to Supabase
   slotsTotal: number;
   slotsFilled: number;

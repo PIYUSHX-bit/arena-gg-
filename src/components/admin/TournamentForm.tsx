@@ -50,6 +50,11 @@ export default function TournamentForm({
   const [prizeTiers, setPrizeTiers] = useState<PrizeTier[]>(
     initial?.prizeDistribution ?? []
   );
+  // New matches default to inactive (a draft) so an admin can fill in
+  // every detail and save it, then activate with one tap later instead
+  // of re-entering everything at go-live time. Existing matches keep
+  // whatever their current visibility already is.
+  const [isActive, setIsActive] = useState(initial?.isActive ?? false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +115,7 @@ export default function TournamentForm({
       category,
       bannerImageUrl: bannerImageUrl.trim() || null,
       status,
+      isActive,
       startsAt: new Date(startsAt).toISOString(),
       slotsTotal: Number(slotsTotal) || 1,
       prizeDistribution: prizeTiers.filter((t) => t.label.trim() !== ""),
@@ -200,6 +206,38 @@ export default function TournamentForm({
           </select>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => setIsActive((v) => !v)}
+        className={`flex items-center justify-between rounded-lg border px-4 py-3 transition-colors ${
+          isActive
+            ? "border-safe/40 bg-safe/10"
+            : "border-line bg-surface-2"
+        }`}
+      >
+        <div className="text-left">
+          <div className="text-sm font-medium">
+            {isActive ? "Active — visible to players" : "Inactive — draft, hidden"}
+          </div>
+          <div className="text-[11px] text-muted mt-0.5">
+            {isActive
+              ? "Tap to hide this match from players again."
+              : "Tap to publish this match to players now."}
+          </div>
+        </div>
+        <span
+          className={`shrink-0 w-10 h-6 rounded-full relative transition-colors ${
+            isActive ? "bg-safe" : "bg-line"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 w-5 h-5 rounded-full bg-base transition-transform ${
+              isActive ? "translate-x-4" : "translate-x-0.5"
+            }`}
+          />
+        </span>
+      </button>
 
       <div>
         <label className="block text-xs tracking-wider text-muted uppercase mb-1.5">
@@ -300,7 +338,7 @@ export default function TournamentForm({
             <img
               src={bannerImageUrl}
               alt="Banner preview"
-              className="w-full aspect-[16/9] object-cover"
+              className="w-full aspect-square object-cover"
             />
             <div className="flex gap-2 p-2 bg-surface-2">
               <button
@@ -325,7 +363,7 @@ export default function TournamentForm({
             type="button"
             onClick={() => bannerInputRef.current?.click()}
             disabled={bannerUploading}
-            className="w-full aspect-[16/9] rounded-lg border border-dashed border-line bg-surface-2 flex flex-col items-center justify-center gap-1.5 text-muted disabled:opacity-50"
+            className="w-full aspect-square rounded-lg border border-dashed border-line bg-surface-2 flex flex-col items-center justify-center gap-1.5 text-muted disabled:opacity-50"
           >
             <ImagePlus size={22} />
             <span className="text-xs">

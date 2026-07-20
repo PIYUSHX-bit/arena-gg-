@@ -4,6 +4,7 @@ import {
   fetchAllTournaments,
   createTournament,
   updateTournament,
+  setTournamentActive,
   type AdminTournament,
 } from "../../lib/admin";
 import { getGameModeById } from "../../lib/gameModes";
@@ -55,6 +56,19 @@ export default function AdminTournamentsTab() {
     return { error: updateError };
   }
 
+  async function handleToggleActive(t: AdminTournament) {
+    const nextActive = !t.isActive;
+    // Optimistic — flip immediately, reconcile with a reload after.
+    setTournaments((prev) =>
+      prev.map((row) => (row.id === t.id ? { ...row, isActive: nextActive } : row))
+    );
+    const { error: toggleError } = await setTournamentActive(t.id, nextActive);
+    if (toggleError) {
+      setError(toggleError);
+      load();
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {!creating && (
@@ -104,24 +118,47 @@ export default function AdminTournamentsTab() {
           ) : (
             <div
               key={t.id}
-              className="bg-surface border border-line rounded-lg px-4 py-3.5"
+              className={`bg-surface border rounded-lg px-4 py-3.5 ${
+                t.isActive ? "border-line" : "border-line opacity-60"
+              }`}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium">{t.name}</span>
-                <span className="text-[11px] uppercase tracking-wide text-muted">
-                  {t.status}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span
+                    className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
+                      t.isActive
+                        ? "bg-safe/15 text-safe"
+                        : "bg-line/40 text-muted"
+                    }`}
+                  >
+                    {t.isActive ? "Active" : "Draft"}
+                  </span>
+                  <span className="text-[11px] uppercase tracking-wide text-muted">
+                    {t.status}
+                  </span>
+                </div>
               </div>
               <div className="text-xs text-muted mb-2.5">
                 {(t.category && getGameModeById(t.category)?.category) ??
                   "Uncategorized"}{" "}
                 · {t.map} · {t.slotsFilled}/{t.slotsTotal}
               </div>
+              <div className="text-xs font-mono text-amber mb-2.5">
+                Entry {formatRupees(t.entryFee)} · Prize{" "}
+                {formatRupees(t.prizePool)} · Kill {formatRupees(t.perKill)}
+              </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-amber">
-                  Entry {formatRupees(t.entryFee)} · Prize{" "}
-                  {formatRupees(t.prizePool)} · Kill {formatRupees(t.perKill)}
-                </span>
+                <button
+                  onClick={() => handleToggleActive(t)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
+                    t.isActive
+                      ? "border border-line text-muted"
+                      : "bg-safe text-base"
+                  }`}
+                >
+                  {t.isActive ? "Deactivate" : "Activate"}
+                </button>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() =>

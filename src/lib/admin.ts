@@ -17,6 +17,7 @@ export interface AdminTournament {
   category: string | null;
   bannerImageUrl: string | null;
   status: TournamentStatus;
+  isActive: boolean;
   startsAt: string; // ISO, unformatted — this is for editing, not display
   slotsTotal: number;
   slotsFilled: number;
@@ -34,6 +35,7 @@ export interface TournamentInput {
   category: string | null;
   bannerImageUrl: string | null;
   status: TournamentStatus;
+  isActive: boolean;
   startsAt: string; // ISO
   slotsTotal: number;
   prizeDistribution: PrizeTier[];
@@ -51,6 +53,7 @@ interface AdminTournamentRow {
   category: string | null;
   banner_image_url: string | null;
   status: TournamentStatus;
+  is_active: boolean;
   starts_at: string;
   slots_total: number;
   slots_filled: number;
@@ -70,6 +73,7 @@ function mapAdminTournamentRow(row: AdminTournamentRow): AdminTournament {
     category: row.category,
     bannerImageUrl: row.banner_image_url,
     status: row.status,
+    isActive: row.is_active,
     startsAt: row.starts_at,
     slotsTotal: row.slots_total,
     slotsFilled: row.slots_filled,
@@ -89,6 +93,7 @@ function toRow(input: TournamentInput) {
     category: input.category,
     banner_image_url: input.bannerImageUrl,
     status: input.status,
+    is_active: input.isActive,
     starts_at: input.startsAt,
     slots_total: input.slotsTotal,
     prize_distribution: input.prizeDistribution,
@@ -137,6 +142,20 @@ export async function updateTournament(
   const { error } = await supabase
     .from("tournaments")
     .update(toRow(input))
+    .eq("id", id);
+
+  return { error: error?.message ?? null };
+}
+
+// One-tap activate/deactivate — doesn't require reopening the full edit
+// form just to flip visibility to players.
+export async function setTournamentActive(
+  id: string,
+  isActive: boolean
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("tournaments")
+    .update({ is_active: isActive })
     .eq("id", id);
 
   return { error: error?.message ?? null };

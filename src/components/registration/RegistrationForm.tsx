@@ -25,7 +25,6 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
   const navigate = useNavigate();
   const playerCount = PLAYERS_PER_MODE[tournament.mode];
 
-  const [squadName, setSquadName] = useState("");
   const [players, setPlayers] = useState<PlayerInfo[]>(
     Array.from({ length: playerCount }, emptyPlayer)
   );
@@ -93,10 +92,13 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     }
 
     setSubmitting(true);
+    // No squad-name input in the UI — the registering player's own IGN
+    // identifies the entry (entries.squad_name is still NOT NULL and
+    // shown to admins/My Matches, so it needs some value).
     const { entryId: newEntryId, error: createError } = await createEntry({
       tournamentId: tournament.id,
       userId: user.id,
-      squadName,
+      squadName: players[0].ign,
       players,
     });
 
@@ -141,7 +143,7 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
         currency,
         order_id: orderId,
         name: "ARENA.GG",
-        description: `${tournament.name} — ${squadName}`,
+        description: tournament.name,
         prefill: {
           email: user.email ?? undefined,
           contact: user.phone ?? undefined,
@@ -187,8 +189,8 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
       <div className="text-center py-8">
         <p className="text-safe text-lg mb-2">You're in the zone.</p>
         <p className="text-muted text-sm mb-6">
-          {squadName} is registered for {tournament.name}. Room ID drops 15
-          minutes before start.
+          You're registered for {tournament.name}. Room ID drops 15 minutes
+          before start.
         </p>
         <button
           onClick={() => navigate("/matches?status=upcoming")}
@@ -207,10 +209,6 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
           <div className="flex justify-between text-sm mb-2">
             <span className="text-muted">Tournament</span>
             <span>{tournament.name}</span>
-          </div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-muted">Squad</span>
-            <span>{squadName}</span>
           </div>
           <div className="flex justify-between text-sm mb-2">
             <span className="text-muted">
@@ -251,21 +249,6 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
 
   return (
     <form onSubmit={handleRosterSubmit} className="flex flex-col gap-5">
-      <div>
-        <label className="block text-xs tracking-wider text-muted uppercase mb-1.5">
-          Squad Name
-        </label>
-        <input
-          type="text"
-          value={squadName}
-          onChange={(e) => setSquadName(e.target.value)}
-          placeholder="e.g. Team Vortex"
-          required
-          maxLength={30}
-          className="w-full bg-surface-2 border border-line rounded px-4 py-3 text-sm outline-none transition-colors focus:border-ember"
-        />
-      </div>
-
       <div className="flex flex-col gap-4">
         {players.map((player, i) => (
           <SquadMemberInput

@@ -17,6 +17,7 @@ interface TournamentRow {
   category: string | null;
   banner_image_url: string | null;
   status: TournamentStatus;
+  is_active: boolean;
   starts_at: string;
   slots_total: number;
   slots_filled: number;
@@ -36,6 +37,7 @@ function mapTournamentRow(row: TournamentRow): Tournament {
     category: row.category,
     bannerImageUrl: row.banner_image_url,
     status: row.status,
+    isActive: row.is_active,
     startsAt: new Date(row.starts_at).toLocaleString("en-IN", {
       day: "numeric",
       month: "short",
@@ -55,6 +57,7 @@ export async function fetchTournamentById(
     .from("tournaments")
     .select("*")
     .eq("id", id)
+    .eq("is_active", true)
     .single();
 
   if (error) {
@@ -74,6 +77,7 @@ export async function fetchTournaments(): Promise<{
     .from("tournaments")
     .select("*")
     .eq("status", "upcoming")
+    .eq("is_active", true)
     .order("starts_at", { ascending: true });
 
   if (error) {
@@ -94,6 +98,7 @@ export async function fetchTournamentsByCategory(
     .select("*")
     .eq("category", category)
     .eq("status", status)
+    .eq("is_active", true)
     .order("starts_at", { ascending: status !== "completed" });
 
   if (error) {
