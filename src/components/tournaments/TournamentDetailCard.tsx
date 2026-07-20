@@ -61,7 +61,7 @@ export default function TournamentDetailCard({
             <div className="text-[10px] text-muted uppercase tracking-wide mb-1">
               Prize Pool
             </div>
-            <div className="font-display font-bold text-base text-amber">
+            <div className="font-display font-bold text-base text-ink">
               {formatRupees(prizePool)}
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function TournamentDetailCard({
             <div className="text-[10px] text-muted uppercase tracking-wide mb-1">
               Per Kill
             </div>
-            <div className="font-display font-bold text-base text-amber">
+            <div className="font-display font-bold text-base text-ink">
               {formatRupees(perKill)}
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function TournamentDetailCard({
             <div className="text-[10px] text-muted uppercase tracking-wide mb-1">
               Entry Fee
             </div>
-            <div className="font-display font-bold text-base text-amber">
+            <div className="font-display font-bold text-base text-ink">
               {formatRupees(entryFee)}
             </div>
           </div>

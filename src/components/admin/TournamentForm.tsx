@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Plus, X, ImagePlus } from "lucide-react";
 import { GAME_MODES } from "../../lib/gameModes";
+import { uploadTournamentBanner } from "../../lib/tournamentBanner";
 import type { TournamentInput, AdminTournament } from "../../lib/admin";
 import type { TournamentMode, TournamentStatus, PrizeTier } from "../../types/tournament";
 
@@ -52,6 +53,29 @@ export default function TournamentForm({
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [bannerError, setBannerError] = useState<string | null>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleBannerSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file next time
+    if (!file) return;
+
+    setBannerError(null);
+    setBannerUploading(true);
+
+    const { url, error: uploadError } = await uploadTournamentBanner(file);
+
+    setBannerUploading(false);
+
+    if (uploadError || !url) {
+      setBannerError(uploadError ?? "Upload failed.");
+      return;
+    }
+
+    setBannerImageUrl(url);
+  }
 
   function updateTier(index: number, tier: PrizeTier) {
     setPrizeTiers((prev) => prev.map((t, i) => (i === index ? tier : t)));
@@ -268,15 +292,61 @@ export default function TournamentForm({
 
       <div>
         <label className="block text-xs tracking-wider text-muted uppercase mb-1.5">
-          Banner Image URL (optional)
+          Banner Image (optional)
         </label>
+
+        {bannerImageUrl ? (
+          <div className="rounded-lg overflow-hidden border border-line">
+            <img
+              src={bannerImageUrl}
+              alt="Banner preview"
+              className="w-full aspect-[16/9] object-cover"
+            />
+            <div className="flex gap-2 p-2 bg-surface-2">
+              <button
+                type="button"
+                onClick={() => bannerInputRef.current?.click()}
+                disabled={bannerUploading}
+                className="flex-1 bg-ember text-base font-semibold text-xs py-2 rounded disabled:opacity-50"
+              >
+                {bannerUploading ? "Uploading..." : "Replace"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setBannerImageUrl("")}
+                className="px-4 text-xs text-muted border border-line rounded"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => bannerInputRef.current?.click()}
+            disabled={bannerUploading}
+            className="w-full aspect-[16/9] rounded-lg border border-dashed border-line bg-surface-2 flex flex-col items-center justify-center gap-1.5 text-muted disabled:opacity-50"
+          >
+            <ImagePlus size={22} />
+            <span className="text-xs">
+              {bannerUploading ? "Uploading..." : "Tap to choose an image"}
+            </span>
+          </button>
+        )}
+
         <input
-          type="text"
-          value={bannerImageUrl}
-          onChange={(e) => setBannerImageUrl(e.target.value)}
-          placeholder="https://..."
-          className="w-full bg-surface-2 border border-line rounded px-3 py-2.5 text-sm outline-none focus:border-ember"
+          ref={bannerInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleBannerSelected}
+          className="hidden"
         />
+
+        {bannerError && (
+          <p className="text-xs text-ember bg-ember/10 border border-ember/30 rounded px-3 py-2 mt-2">
+            {bannerError}
+          </p>
+        )}
       </div>
 
       <div>

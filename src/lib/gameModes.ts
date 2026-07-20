@@ -1,3 +1,4 @@
+import { Skull, Map, Swords, Crosshair, Gift, Users, Target } from "lucide-react";
 import type { GameModeCard } from "../types/dashboard";
 
 export const GAME_MODES: GameModeCard[] = [
@@ -6,6 +7,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "Solo Survival Tournaments",
     category: "BR SURVIVAL",
     liveCount: 0,
+    icon: Skull,
     accentFrom: "from-ember",
     accentTo: "to-[#7A1F0A]",
   },
@@ -14,6 +16,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "BR Full Map Tournaments",
     category: "BR FULL MAP",
     liveCount: 0,
+    icon: Map,
     accentFrom: "from-zone",
     accentTo: "to-[#2E1A6B]",
   },
@@ -22,6 +25,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "Clash Squad 1v1 Tournaments",
     category: "CLASH SQUAD",
     liveCount: 0,
+    icon: Swords,
     accentFrom: "from-amber",
     accentTo: "to-[#7A4B00]",
   },
@@ -30,6 +34,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "Lone Wolf 1v1 Tournaments",
     category: "LONE WOLF",
     liveCount: 0,
+    icon: Crosshair,
     accentFrom: "from-safe",
     accentTo: "to-[#0F5A32]",
   },
@@ -38,6 +43,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "Free Entry Tournaments",
     category: "FREE ENTRY",
     liveCount: 0,
+    icon: Gift,
     accentFrom: "from-safe",
     accentTo: "to-[#2E1A6B]",
   },
@@ -46,6 +52,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "Lone Wolf 2v2 Tournaments",
     category: "LONE WOLF 2V2",
     liveCount: 0,
+    icon: Users,
     accentFrom: "from-zone",
     accentTo: "to-[#7A1F0A]",
   },
@@ -54,6 +61,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "Gun Pro Head Only 1v1",
     category: "HEAD ONLY 1V1",
     liveCount: 0,
+    icon: Target,
     accentFrom: "from-amber",
     accentTo: "to-[#7A1F0A]",
   },
@@ -62,6 +70,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "BR Only Survival Tournaments",
     category: "BR ONLY",
     liveCount: 0,
+    icon: Skull,
     accentFrom: "from-ember",
     accentTo: "to-[#7A4B00]",
   },

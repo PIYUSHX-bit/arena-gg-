@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+
 export type MatchStatus = "ongoing" | "upcoming" | "completed";
 
 export interface GameModeCard {
@@ -5,6 +7,7 @@ export interface GameModeCard {
   title: string;
   category: string; // e.g. "BR SURVIVAL" — the small label bottom-left
   liveCount: number;
+  icon: LucideIcon;
   accentFrom: string; // tailwind gradient stop, e.g. "from-ember"
   accentTo: string;
 }

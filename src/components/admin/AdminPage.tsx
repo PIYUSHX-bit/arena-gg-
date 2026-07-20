@@ -45,15 +45,15 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-base text-ink font-body max-w-[480px] mx-auto pb-8">
-      <div className="flex items-center gap-3 px-5 py-4 bg-surface border-b border-line sticky top-0 z-10">
+    <div className="h-screen flex flex-col bg-base text-ink font-body max-w-[480px] mx-auto">
+      <div className="shrink-0 flex items-center gap-3 px-5 py-4 bg-surface border-b border-line">
         <button onClick={() => navigate(-1)} aria-label="Back">
           <ArrowLeft size={20} />
         </button>
         <h1 className="font-display font-semibold text-xl">Admin Panel</h1>
       </div>
 
-      <div className="flex overflow-x-auto border-b border-line px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="shrink-0 flex overflow-x-auto border-b border-line px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -69,7 +69,9 @@ export default function AdminPage() {
         ))}
       </div>
 
-      <div className="px-5 py-5">
+      {/* Only this region scrolls — header and tabs stay pinned so long
+          lists (matches, payouts, withdrawals) never scroll them away. */}
+      <div className="flex-1 overflow-y-auto px-5 py-5 pb-8">
         {isAdmin === null && (
           <p className="text-center text-muted text-sm py-8">Loading...</p>
         )}
