@@ -61,6 +61,44 @@ function TopPlayersColumn({
   );
 }
 
+interface SpotlightCardProps {
+  label: string;
+  icon: typeof Trophy;
+  accent: string;
+  bg: string;
+  row: LeaderboardRow | undefined;
+  value: string;
+}
+
+function SpotlightCard({ label, icon: Icon, accent, bg, row, value }: SpotlightCardProps) {
+  return (
+    <div className={`rounded-lg p-3 flex flex-col items-center text-center border border-line ${bg}`}>
+      <Icon size={16} className={`${accent} mb-1.5`} />
+      <span className="text-[10px] uppercase tracking-wide text-muted mb-2">
+        {label}
+      </span>
+      {row ? (
+        <>
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-sm shrink-0 mb-1.5"
+            style={{ backgroundColor: row.avatarColor }}
+          >
+            {row.displayName.charAt(0).toUpperCase()}
+          </div>
+          <div className="text-xs font-semibold truncate max-w-full">
+            {row.displayName}
+          </div>
+          <div className={`font-mono text-sm font-bold mt-0.5 ${accent}`}>
+            {value}
+          </div>
+        </>
+      ) : (
+        <span className="text-[11px] text-muted py-3">No data yet</span>
+      )}
+    </div>
+  );
+}
+
 export default function LeaderboardPage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
@@ -122,6 +160,35 @@ export default function LeaderboardPage() {
               No match results recorded yet — this fills in once tournaments
               are completed and results are logged.
             </p>
+          </div>
+        )}
+
+        {!loading && !error && rows.length > 0 && (
+          <div className="grid grid-cols-3 gap-2.5 mb-4">
+            <SpotlightCard
+              label="Top Kills"
+              icon={Crosshair}
+              accent="text-zone"
+              bg="bg-zone/10"
+              row={topKillers[0]}
+              value={topKillers[0] ? `${topKillers[0].totalKills} kills` : ""}
+            />
+            <SpotlightCard
+              label="Top Wins"
+              icon={Award}
+              accent="text-safe"
+              bg="bg-safe/10"
+              row={topWinners[0]}
+              value={topWinners[0] ? `${topWinners[0].wins} wins` : ""}
+            />
+            <SpotlightCard
+              label="Top Earner"
+              icon={Coins}
+              accent="text-amber"
+              bg="bg-amber/10"
+              row={topEarners[0]}
+              value={topEarners[0] ? formatRupees(topEarners[0].totalEarnings) : ""}
+            />
           </div>
         )}
 
