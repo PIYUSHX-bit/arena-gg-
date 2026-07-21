@@ -10,6 +10,7 @@ import SquadMemberInput from "./SquadMemberInput";
 import PrizeDetails from "./PrizeDetails";
 import TournamentRoster from "./TournamentRoster";
 import RoomDetails from "./RoomDetails";
+import MatchCountdown from "./MatchCountdown";
 import VoteToBanPanel from "./VoteToBanPanel";
 
 interface RegistrationFormProps {
@@ -61,17 +62,18 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
   // entries has a unique (tournament_id, user_id) constraint, so a
   // second registration attempt would otherwise just fail with a
   // constraint-violation error after filling out the whole form. Check
-  // upfront instead: resume a pending payment, bounce to My Matches if
-  // there's genuinely nothing left to do, or — once the match itself
-  // has completed — show the post-match vote-to-flag screen instead of
-  // redirecting away.
+  // upfront instead: resume a pending payment, show the Room ID/Password
+  // screen if already confirmed (same screen shown right after paying —
+  // clicking "Join" again should surface the room info, not bounce the
+  // player off to the My Matches list), or — once the match itself has
+  // completed — show the post-match vote-to-flag screen instead.
   //
   // Only ever runs once, on first mount (guarded by `step === "checking"`
   // below) — depending on the whole `user` object here would re-run it
   // any time Supabase re-emits a fresh (but equivalent) user object, e.g.
   // on token refresh or a tab regaining focus. Without the guard, that
   // could fire right after payment succeeds and yank the player off the
-  // success screen straight to My Matches.
+  // success screen.
   useEffect(() => {
     if (!user || step !== "checking") return;
     let cancelled = false;
@@ -80,11 +82,7 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
       if (cancelled) return;
 
       if (entry?.status === "confirmed") {
-        if (tournament.status === "completed") {
-          setStep("completed");
-        } else {
-          navigate("/matches?status=upcoming", { replace: true });
-        }
+        setStep(tournament.status === "completed" ? "completed" : "done");
       } else if (entry?.status === "pending_payment") {
         setEntryId(entry.entryId);
         setStep("payment");
@@ -230,6 +228,8 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
             </button>
           </div>
         </div>
+
+        <MatchCountdown startsAtIso={tournament.startsAtIso} />
 
         <RoomDetails tournamentId={tournament.id} startsAtIso={tournament.startsAtIso} />
 

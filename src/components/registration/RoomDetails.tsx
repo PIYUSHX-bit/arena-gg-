@@ -3,7 +3,7 @@ import { Lock, KeyRound, DoorOpen } from "lucide-react";
 import { fetchTournamentRoom, type TournamentRoomInfo } from "../../lib/entries";
 import CopyIconButton from "../common/CopyIconButton";
 
-const ROOM_ID_LEAD_MS = 15 * 60 * 1000; // Room ID unlocks 15 min before start
+const REVEAL_LEAD_MS = 15 * 60 * 1000; // Room ID + password both unlock 15 min before start
 
 interface RoomDetailsProps {
   tournamentId: string;
@@ -74,11 +74,10 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
   const [loading, setLoading] = useState(true);
 
   const startsAtMs = new Date(startsAtIso).getTime();
-  // Room ID is withheld until 15 minutes before start regardless of when
-  // the admin actually set it, so it can never leak early even if it was
-  // entered days in advance. Password stays locked until start itself.
-  const roomIdUnlocked = useUnlocksAt(startsAtMs - ROOM_ID_LEAD_MS);
-  const matchStarted = useUnlocksAt(startsAtMs);
+  // Both are withheld until 15 minutes before start regardless of when
+  // the admin actually set them, so neither can leak early even if
+  // entered days in advance.
+  const revealed = useUnlocksAt(startsAtMs - REVEAL_LEAD_MS);
 
   useEffect(() => {
     fetchTournamentRoom(tournamentId).then(({ room: r }) => {
@@ -95,8 +94,8 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
   // set anything or before it's time to reveal it — so players know this
   // is where it'll show up, rather than a placeholder that disappears
   // once real data exists. Each row is just left blank until it's ready.
-  const showRoomId = roomIdUnlocked && !!room?.roomId;
-  const showPassword = matchStarted && !!room?.roomPassword;
+  const showRoomId = revealed && !!room?.roomId;
+  const showPassword = revealed && !!room?.roomPassword;
 
   return (
     <div>
@@ -108,15 +107,13 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
         <RoomRow
           label="Room ID"
           value={showRoomId ? room!.roomId : null}
-          placeholder={
-            roomIdUnlocked ? "Not set yet" : "Drops 15 min before start"
-          }
+          placeholder={revealed ? "Will get soon" : "Drops 15 min before start"}
           locked={!showRoomId}
         />
         <RoomRow
           label="Password"
           value={showPassword ? room!.roomPassword : null}
-          placeholder={matchStarted ? "Not set yet" : "Unlocks at match start"}
+          placeholder={revealed ? "Will get soon" : "Drops 15 min before start"}
           locked={!showPassword}
         />
       </div>
