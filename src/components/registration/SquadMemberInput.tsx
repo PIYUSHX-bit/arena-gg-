@@ -1,23 +1,19 @@
 import type { PlayerInfo } from "../../types/tournament";
 
 interface SquadMemberInputProps {
-  index: number;
   value: PlayerInfo;
   onChange: (value: PlayerInfo) => void;
-  isSelf?: boolean;
 }
 
 export default function SquadMemberInput({
-  index,
   value,
   onChange,
-  isSelf,
 }: SquadMemberInputProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
       <div>
         <label className="block text-xs tracking-wider text-muted uppercase mb-1.5">
-          Player {index + 1} {isSelf && "(You)"} — IGN
+          Your Free Fire IGN
         </label>
         <input
           type="text"

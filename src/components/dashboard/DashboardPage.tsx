@@ -71,7 +71,10 @@ export default function DashboardPage() {
             icon: MessageCircle,
             accent: "safe",
             onCtaClick: () =>
-              window.open("https://wa.me/qr/JTEWU2BSGKUTO1", "_blank"),
+              window.open(
+                "https://chat.whatsapp.com/BeVDeycJVIp464TudISKVj?s=cl&p=a&mlu=4&amv=1&utm_source=igweb&utm_campaign=wa_group_url_xma&source_surface=27",
+                "_blank"
+              ),
           },
         ]}
       />

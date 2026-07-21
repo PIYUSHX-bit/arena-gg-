@@ -3,6 +3,8 @@ import { Lock, KeyRound, DoorOpen } from "lucide-react";
 import { fetchTournamentRoom, type TournamentRoomInfo } from "../../lib/entries";
 import CopyIconButton from "../common/CopyIconButton";
 
+const ROOM_ID_LEAD_MS = 15 * 60 * 1000; // Room ID unlocks 15 min before start
+
 interface RoomDetailsProps {
   tournamentId: string;
   startsAtIso: string;
@@ -51,12 +53,32 @@ function RoomRow({
   );
 }
 
+// Flips `setUnlocked` the moment `unlockAtMs` passes, for anyone with the
+// page open and waiting rather than reloading right at the unlock time.
+function useUnlocksAt(unlockAtMs: number) {
+  const [unlocked, setUnlocked] = useState(() => Date.now() >= unlockAtMs);
+
+  useEffect(() => {
+    if (unlocked) return;
+    const msUntilUnlock = unlockAtMs - Date.now();
+    if (msUntilUnlock <= 0) return;
+    const timer = setTimeout(() => setUnlocked(true), msUntilUnlock);
+    return () => clearTimeout(timer);
+  }, [unlockAtMs, unlocked]);
+
+  return unlocked;
+}
+
 export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsProps) {
   const [room, setRoom] = useState<TournamentRoomInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [matchStarted, setMatchStarted] = useState(
-    () => Date.now() >= new Date(startsAtIso).getTime()
-  );
+
+  const startsAtMs = new Date(startsAtIso).getTime();
+  // Room ID is withheld until 15 minutes before start regardless of when
+  // the admin actually set it, so it can never leak early even if it was
+  // entered days in advance. Password stays locked until start itself.
+  const roomIdUnlocked = useUnlocksAt(startsAtMs - ROOM_ID_LEAD_MS);
+  const matchStarted = useUnlocksAt(startsAtMs);
 
   useEffect(() => {
     fetchTournamentRoom(tournamentId).then(({ room: r }) => {
@@ -65,24 +87,15 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
     });
   }, [tournamentId]);
 
-  // Flip the moment start time passes, for anyone who has the page open
-  // and waiting rather than reloading right at match time.
-  useEffect(() => {
-    if (matchStarted) return;
-    const msUntilStart = new Date(startsAtIso).getTime() - Date.now();
-    if (msUntilStart <= 0) return;
-    const timer = setTimeout(() => setMatchStarted(true), msUntilStart);
-    return () => clearTimeout(timer);
-  }, [startsAtIso, matchStarted]);
-
   if (loading) {
     return <p className="text-xs text-muted py-2">Loading room details...</p>;
   }
 
   // Always show the Room ID / Password shell, even before the admin has
-  // set anything or before match start — so players know this is where
-  // it'll show up, rather than a placeholder message that disappears
+  // set anything or before it's time to reveal it — so players know this
+  // is where it'll show up, rather than a placeholder that disappears
   // once real data exists. Each row is just left blank until it's ready.
+  const showRoomId = roomIdUnlocked && !!room?.roomId;
   const showPassword = matchStarted && !!room?.roomPassword;
 
   return (
@@ -94,8 +107,11 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
       <div className="border border-line bg-surface rounded-xl divide-y divide-line overflow-hidden">
         <RoomRow
           label="Room ID"
-          value={room?.roomId ?? null}
-          placeholder="Drops 15 min before start"
+          value={showRoomId ? room!.roomId : null}
+          placeholder={
+            roomIdUnlocked ? "Not set yet" : "Drops 15 min before start"
+          }
+          locked={!showRoomId}
         />
         <RoomRow
           label="Password"

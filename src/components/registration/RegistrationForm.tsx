@@ -5,7 +5,6 @@ import { useAuth } from "../../context/AuthContext";
 import { createEntry, fetchMyEntryForTournament } from "../../lib/entries";
 import { fetchProfile, updateProfile } from "../../lib/profile";
 import { fetchWalletBalance, payEntryFromWallet } from "../../lib/wallet";
-import { PLAYERS_PER_MODE } from "../../types/tournament";
 import type { Tournament, PlayerInfo } from "../../types/tournament";
 import SquadMemberInput from "./SquadMemberInput";
 import PrizeDetails from "./PrizeDetails";
@@ -26,18 +25,17 @@ function emptyPlayer(): PlayerInfo {
 export default function RegistrationForm({ tournament }: RegistrationFormProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const playerCount = PLAYERS_PER_MODE[tournament.mode];
 
-  const [players, setPlayers] = useState<PlayerInfo[]>(
-    Array.from({ length: playerCount }, emptyPlayer)
-  );
+  // Registration is always for the player themself — no teammates to
+  // fill in on their behalf, regardless of the tournament's mode.
+  const [player, setPlayer] = useState<PlayerInfo>(emptyPlayer());
   const [step, setStep] = useState<Step>("checking");
   const [entryId, setEntryId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
-  const totalDue = tournament.entryFee * playerCount;
+  const totalDue = tournament.entryFee;
   const hasEnoughBalance = walletBalance !== null && walletBalance >= totalDue;
 
   // Cache the saved values so handleRosterSubmit can tell whether the
@@ -51,14 +49,10 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
       setSavedIgn(profile?.ffIgn ?? null);
       setSavedUid(profile?.ffUid ?? null);
       if (profile?.ffIgn || profile?.ffUid) {
-        setPlayers((prev) => {
-          const next = [...prev];
-          next[0] = {
-            ign: profile.ffIgn ?? next[0].ign,
-            uid: profile.ffUid ?? next[0].uid,
-          };
-          return next;
-        });
+        setPlayer((prev) => ({
+          ign: profile.ffIgn ?? prev.ign,
+          uid: profile.ffUid ?? prev.uid,
+        }));
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,24 +109,12 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     );
   }
 
-  function updatePlayer(index: number, value: PlayerInfo) {
-    const next = [...players];
-    next[index] = value;
-    setPlayers(next);
-  }
-
   async function handleRosterSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     if (!user) {
       setError("You must be logged in to register.");
-      return;
-    }
-
-    const uids = players.map((p) => p.uid);
-    if (new Set(uids).size !== uids.length) {
-      setError("Each player must have a unique Free Fire UID.");
       return;
     }
 
@@ -143,15 +125,14 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     const { entryId: newEntryId, error: createError } = await createEntry({
       tournamentId: tournament.id,
       userId: user.id,
-      squadName: players[0].ign,
-      players,
+      squadName: player.ign,
+      players: [player],
     });
 
     // Save the player's own IGN/UID back to their profile if it's new or
     // changed, so the next registration auto-fills without retyping.
-    const self = players[0];
-    if (self.ign !== savedIgn || self.uid !== savedUid) {
-      updateProfile(user.id, { ffIgn: self.ign, ffUid: self.uid });
+    if (player.ign !== savedIgn || player.uid !== savedUid) {
+      updateProfile(user.id, { ffIgn: player.ign, ffUid: player.uid });
     }
 
     setSubmitting(false);
@@ -258,9 +239,7 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
             <span>{tournament.name}</span>
           </div>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-muted">
-              {playerCount} × ₹{tournament.entryFee}
-            </span>
+            <span className="text-muted">Entry Fee</span>
             <span>₹{totalDue.toLocaleString("en-IN")}</span>
           </div>
           <div className="flex justify-between text-base font-semibold pt-3 mt-3 border-t border-line">
@@ -319,15 +298,7 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     <div className="flex flex-col gap-5">
       <form onSubmit={handleRosterSubmit} className="flex flex-col gap-5">
         <div className="flex flex-col gap-4">
-          {players.map((player, i) => (
-            <SquadMemberInput
-              key={i}
-              index={i}
-              value={player}
-              onChange={(value) => updatePlayer(i, value)}
-              isSelf={i === 0}
-            />
-          ))}
+          <SquadMemberInput value={player} onChange={setPlayer} />
         </div>
 
         {error && (
