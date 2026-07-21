@@ -36,15 +36,11 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
     return <p className="text-xs text-muted py-2">Loading room details...</p>;
   }
 
-  if (!room?.roomId) {
-    return (
-      <div className="border border-line rounded-lg px-4 py-3.5 text-center">
-        <p className="text-xs text-muted">
-          Room ID drops 15 minutes before the match starts — check back soon.
-        </p>
-      </div>
-    );
-  }
+  // Always show the Room ID / Password shell, even before the admin has
+  // set anything or before match start — so players know this is where
+  // it'll show up, rather than a placeholder message that disappears
+  // once real data exists. Each row is just left blank until it's ready.
+  const showPassword = matchStarted && !!room?.roomPassword;
 
   return (
     <div className="border border-line rounded-lg divide-y divide-line overflow-hidden">
@@ -55,15 +51,21 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
             <div className="text-[10px] text-muted uppercase tracking-wide">
               Room ID
             </div>
-            <div className="text-sm font-mono truncate">{room.roomId}</div>
+            <div className="text-sm font-mono truncate">
+              {room?.roomId || (
+                <span className="text-muted font-body">
+                  Drops 15 min before start
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <CopyIconButton value={room.roomId} />
+        {room?.roomId && <CopyIconButton value={room.roomId} />}
       </div>
 
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2 min-w-0">
-          {matchStarted ? (
+          {showPassword ? (
             <KeyRound size={14} className="text-zone shrink-0" />
           ) : (
             <Lock size={14} className="text-muted shrink-0" />
@@ -72,18 +74,18 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
             <div className="text-[10px] text-muted uppercase tracking-wide">
               Password
             </div>
-            {matchStarted ? (
+            {showPassword ? (
               <div className="text-sm font-mono truncate">
-                {room.roomPassword || "—"}
+                {room!.roomPassword}
               </div>
             ) : (
-              <div className="text-xs text-muted">Unlocks at match start</div>
+              <div className="text-xs text-muted">
+                {matchStarted ? "Not set yet" : "Unlocks at match start"}
+              </div>
             )}
           </div>
         </div>
-        {matchStarted && room.roomPassword && (
-          <CopyIconButton value={room.roomPassword} />
-        )}
+        {showPassword && <CopyIconButton value={room!.roomPassword!} />}
       </div>
     </div>
   );
