@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { useAuth } from "../../context/AuthContext";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
 import PhoneLoginForm from "./PhoneLoginForm";
@@ -16,6 +17,17 @@ export default function AuthPage() {
   const [method, setMethod] = useState<Method>("email");
   const [googleError, setGoogleError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Covers the OAuth redirect back from Google/Supabase: the session
+  // lands here via onAuthStateChange rather than a form submit, so
+  // there's no handleSuccess() call to hook into. ProtectedRoute /
+  // ProfileCompletionGuard / ReferralGate take it from here.
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
 
   function handleSuccess() {
     navigate("/dashboard");
