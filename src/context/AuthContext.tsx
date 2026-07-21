@@ -15,7 +15,9 @@ interface AuthContextValue {
   signUp: (
     email: string,
     password: string,
-    displayName: string
+    displayName: string,
+    ffUid: string,
+    phoneNumber?: string
   ) => Promise<{ error: string | null }>;
   signIn: (
     email: string,
@@ -57,12 +59,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  async function signUp(email: string, password: string, displayName: string) {
+  async function signUp(
+    email: string,
+    password: string,
+    displayName: string,
+    ffUid: string,
+    phoneNumber?: string
+  ) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { display_name: displayName },
+        data: {
+          display_name: displayName,
+          // Same value doubles as the Free Fire IGN so registration can
+          // auto-fill it later (see RegistrationForm) without asking the
+          // player to type their in-game name twice.
+          ff_ign: displayName,
+          ff_uid: ffUid,
+          ...(phoneNumber ? { phone_number: phoneNumber } : {}),
+        },
       },
     });
     return { error: error?.message ?? null };

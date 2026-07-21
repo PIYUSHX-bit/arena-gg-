@@ -5,6 +5,7 @@ import AuthPage from "./components/auth/AuthPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import DashboardPage from "./components/dashboard/DashboardPage";
 import ProfilePage from "./components/profile/ProfilePage";
+import PublicProfilePage from "./components/profile/PublicProfilePage";
 import MatchesPage from "./components/matches/MatchesPage";
 import LeaderboardPage from "./components/leaderboard/LeaderboardPage";
 import MenuPage from "./components/menu/MenuPage";
@@ -35,6 +36,10 @@ export default function App() {
           <Route path="/login" element={<AuthPage />} />
           <Route path="/dashboard" element={protect(<DashboardPage />)} />
           <Route path="/profile" element={protect(<ProfilePage />)} />
+          <Route
+            path="/profile/view/:userId"
+            element={protect(<PublicProfilePage />)}
+          />
           <Route path="/matches" element={protect(<MatchesPage />)} />
           <Route path="/leaderboard" element={protect(<LeaderboardPage />)} />
           <Route path="/menu" element={protect(<MenuPage />)} />

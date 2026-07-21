@@ -9,6 +9,8 @@ interface SignupFormProps {
 export default function SignupForm({ onSuccess }: SignupFormProps) {
   const { signUp } = useAuth();
   const [displayName, setDisplayName] = useState("");
+  const [ffUid, setFfUid] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -24,8 +26,19 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
       return;
     }
 
+    if (!ffUid.trim()) {
+      setError("Free Fire UID is required.");
+      return;
+    }
+
     setSubmitting(true);
-    const { error: signUpError } = await signUp(email, password, displayName);
+    const { error: signUpError } = await signUp(
+      email,
+      password,
+      displayName,
+      ffUid.trim(),
+      phoneNumber.trim() || undefined
+    );
     setSubmitting(false);
 
     if (signUpError) {
@@ -63,6 +76,26 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
         onChange={(e) => setDisplayName(e.target.value)}
         required
         maxLength={24}
+      />
+      <AuthInput
+        id="signup-ff-uid"
+        label="Free Fire UID"
+        type="text"
+        inputMode="numeric"
+        value={ffUid}
+        onChange={(e) => setFfUid(e.target.value.replace(/\D/g, ""))}
+        placeholder="123456789"
+        required
+        maxLength={12}
+      />
+      <AuthInput
+        id="signup-phone"
+        label="Phone Number (optional)"
+        type="tel"
+        autoComplete="tel"
+        value={phoneNumber}
+        onChange={(e) => setPhoneNumber(e.target.value)}
+        placeholder="+91 98765 43210"
       />
       <AuthInput
         id="signup-email"

@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Trophy } from "lucide-react";
+import { Trophy, CheckCircle2 } from "lucide-react";
 import type { Tournament } from "../../types/tournament";
 import { getGameModeById } from "../../lib/gameModes";
 
 interface TournamentDetailCardProps {
   tournament: Tournament;
   onJoinClick: () => void;
+  // Set for My Matches, where the card represents an entry the player
+  // already holds rather than an open slot to register for.
+  joined?: boolean;
 }
 
 function formatRupees(amount: number): string {
@@ -15,6 +18,7 @@ function formatRupees(amount: number): string {
 export default function TournamentDetailCard({
   tournament,
   onJoinClick,
+  joined,
 }: TournamentDetailCardProps) {
   const {
     name,
@@ -34,7 +38,7 @@ export default function TournamentDetailCard({
   const typeLabel = (category && getGameModeById(category)?.category) ?? "Free Fire";
   const slotsLeft = Math.max(slotsTotal - slotsFilled, 0);
   const fillPct = slotsTotal > 0 ? (slotsFilled / slotsTotal) * 100 : 0;
-  const canJoin = status === "upcoming" && slotsLeft > 0;
+  const canJoin = joined || (status === "upcoming" && slotsLeft > 0);
 
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = bannerImageUrl && !imageFailed;
@@ -61,7 +65,15 @@ export default function TournamentDetailCard({
         <h3 className="font-display font-bold text-lg leading-snug mb-1.5">
           {name}
         </h3>
-        <p className="text-xs text-muted mb-4">Time: {startsAt}</p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs text-muted">Time: {startsAt}</p>
+          {joined && (
+            <span className="flex items-center gap-1.5 text-safe text-xs font-semibold">
+              <CheckCircle2 size={14} />
+              Joined
+            </span>
+          )}
+        </div>
 
         <div className="grid grid-cols-3 text-center border-y border-line py-3.5 mb-3.5">
           <div>
@@ -130,11 +142,13 @@ export default function TournamentDetailCard({
             disabled={!canJoin}
             className="bg-ember text-base font-semibold text-sm px-6 py-2 rounded-full disabled:opacity-40"
           >
-            {status === "completed"
-              ? "Completed"
-              : slotsLeft > 0
-                ? "Join"
-                : "Full"}
+            {joined
+              ? "Enter"
+              : status === "completed"
+                ? "Completed"
+                : slotsLeft > 0
+                  ? "Join"
+                  : "Full"}
           </button>
         </div>
       </div>

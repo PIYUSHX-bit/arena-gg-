@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { fetchTournamentsByCategory } from "../../lib/entries";
+import { useAuth } from "../../context/AuthContext";
+import {
+  fetchTournamentsByCategory,
+  fetchMyConfirmedTournamentIds,
+} from "../../lib/entries";
 import { getGameModeById } from "../../lib/gameModes";
 import type { Tournament, TournamentStatus } from "../../types/tournament";
 import TournamentDetailCard from "./TournamentDetailCard";
@@ -21,6 +25,7 @@ function isTournamentStatus(value: string | null): value is TournamentStatus {
 export default function GameModeTournamentsPage() {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const statusParam = searchParams.get("status");
@@ -29,6 +34,7 @@ export default function GameModeTournamentsPage() {
     : "upcoming";
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [joinedIds, setJoinedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,10 +46,28 @@ export default function GameModeTournamentsPage() {
 
     setLoading(true);
     fetchTournamentsByCategory(categoryId, activeStatus).then(
-      ({ tournaments: t, error: err }) => {
+      async ({ tournaments: t, error: err }) => {
         if (cancelled) return;
-        if (err) setError(err);
-        else setTournaments(t);
+        if (err) {
+          setError(err);
+          setLoading(false);
+          return;
+        }
+
+        setTournaments(t);
+
+        // Per-card "Joined" badge/Enter button — only true for the
+        // tournaments this player actually holds a confirmed entry for.
+        if (user && t.length > 0) {
+          const { tournamentIds } = await fetchMyConfirmedTournamentIds(
+            user.id,
+            t.map((tournament) => tournament.id)
+          );
+          if (!cancelled) setJoinedIds(tournamentIds);
+        } else {
+          setJoinedIds(new Set());
+        }
+
         setLoading(false);
       }
     );
@@ -51,7 +75,7 @@ export default function GameModeTournamentsPage() {
     return () => {
       cancelled = true;
     };
-  }, [categoryId, activeStatus]);
+  }, [categoryId, activeStatus, user]);
 
   function handleTabClick(status: TournamentStatus) {
     setSearchParams({ status }, { replace: true });
@@ -106,6 +130,7 @@ export default function GameModeTournamentsPage() {
             <TournamentDetailCard
               key={t.id}
               tournament={t}
+              joined={joinedIds.has(t.id)}
               onJoinClick={() => navigate(`/tournaments/${t.id}/register`)}
             />
           ))}

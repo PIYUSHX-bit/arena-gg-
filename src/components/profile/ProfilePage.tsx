@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Pencil } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { fetchProfile, fetchProfileStats, updateProfile } from "../../lib/profile";
 import { uploadAvatar } from "../../lib/avatar";
@@ -129,14 +129,30 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-base flex items-center justify-center text-muted text-sm">
-        Loading profile...
+      <div className="min-h-screen bg-base text-ink font-body max-w-[480px] mx-auto">
+        <div className="flex items-center gap-3 px-5 py-4 bg-surface border-b border-line sticky top-0 z-10">
+          <button onClick={() => navigate(-1)} aria-label="Back">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="font-display font-semibold text-xl">Profile</h1>
+        </div>
+        <p className="text-center text-muted text-sm py-10">
+          Loading profile...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-base text-ink font-body max-w-[480px] mx-auto px-5 py-8">
+    <div className="min-h-screen bg-base text-ink font-body max-w-[480px] mx-auto pb-8">
+      <div className="flex items-center gap-3 px-5 py-4 bg-surface border-b border-line sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} aria-label="Back">
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="font-display font-semibold text-xl">Profile</h1>
+      </div>
+
+      <div className="px-5 pt-8">
       <div className="flex flex-col items-center text-center mb-8">
         <div className="relative mb-4">
           {profile?.avatarUrl ? (
@@ -289,6 +305,7 @@ export default function ProfilePage() {
       >
         Log Out
       </button>
+      </div>
     </div>
   );
 }

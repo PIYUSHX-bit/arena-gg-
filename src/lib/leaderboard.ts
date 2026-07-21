@@ -2,8 +2,10 @@ import { supabase } from "./supabaseClient";
 import type { LeaderboardRow, TopSpenderRow } from "../types/leaderboard";
 
 interface LeaderboardRpcRow {
+  id: string;
   display_name: string;
   avatar_color: string;
+  avatar_url: string | null;
   wins: number;
   total_kills: number;
   total_earnings: number;
@@ -28,8 +30,10 @@ export async function fetchLeaderboard(
   }
 
   const rows = (data as LeaderboardRpcRow[]).map((row) => ({
+    userId: row.id,
     displayName: row.display_name,
     avatarColor: row.avatar_color,
+    avatarUrl: row.avatar_url,
     wins: row.wins,
     totalKills: row.total_kills,
     totalEarnings: row.total_earnings,

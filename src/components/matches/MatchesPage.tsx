@@ -4,8 +4,34 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { fetchMyMatches } from "../../lib/entries";
 import type { Match, TournamentStatus } from "../../types/match";
-import MatchCard from "./MatchCard";
+import type { Tournament } from "../../types/tournament";
+import TournamentDetailCard from "../tournaments/TournamentDetailCard";
 import MatchesEmptyState from "./MatchesEmptyState";
+
+// TournamentDetailCard expects a full Tournament — build one from the
+// fields My Matches already carries so the card renders identically to
+// the browse page, just with `joined` set.
+function matchToTournament(match: Match): Tournament {
+  return {
+    id: match.tournamentId,
+    name: match.tournamentName,
+    mode: match.mode,
+    map: match.map,
+    entryFee: match.entryFee,
+    prizePool: match.prizePool,
+    perKill: match.perKill,
+    entryPerPlayer: match.entryPerPlayer,
+    prizeDistribution: [],
+    category: match.category,
+    bannerImageUrl: match.bannerImageUrl,
+    status: match.status,
+    isActive: true,
+    startsAt: match.startsAt,
+    startsAtIso: match.startsAtIso,
+    slotsTotal: match.slotsTotal,
+    slotsFilled: match.slotsFilled,
+  };
+}
 
 type Tab = { status: TournamentStatus; label: string };
 
@@ -100,7 +126,14 @@ export default function MatchesPage() {
         {!loading &&
           !error &&
           matches.map((match) => (
-            <MatchCard key={match.entryId} match={match} />
+            <TournamentDetailCard
+              key={match.entryId}
+              tournament={matchToTournament(match)}
+              joined
+              onJoinClick={() =>
+                navigate(`/tournaments/${match.tournamentId}/register`)
+              }
+            />
           ))}
       </div>
     </div>

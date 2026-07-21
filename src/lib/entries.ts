@@ -139,6 +139,35 @@ export async function fetchMyEntryForTournament(
   };
 }
 
+// Batched version for a listing page (e.g. a category's tournament
+// list): which of these tournaments does the player already hold a
+// confirmed entry for? Powers the per-card "Joined" badge/Enter button
+// there, updating only for tournaments the player has actually joined.
+export async function fetchMyConfirmedTournamentIds(
+  userId: string,
+  tournamentIds: string[]
+): Promise<{ tournamentIds: Set<string>; error: string | null }> {
+  if (tournamentIds.length === 0) {
+    return { tournamentIds: new Set(), error: null };
+  }
+
+  const { data, error } = await supabase
+    .from("entries")
+    .select("tournament_id")
+    .eq("user_id", userId)
+    .eq("status", "confirmed")
+    .in("tournament_id", tournamentIds);
+
+  if (error) {
+    return { tournamentIds: new Set(), error: error.message };
+  }
+
+  return {
+    tournamentIds: new Set(data.map((row) => row.tournament_id)),
+    error: null,
+  };
+}
+
 export interface RosterEntry {
   squadName: string;
   players: PlayerInfo[];
@@ -244,6 +273,14 @@ interface MatchRow {
     map: string;
     starts_at: string;
     status: TournamentStatus;
+    entry_fee: number;
+    prize_pool: number;
+    per_kill: number;
+    entry_per_player: number;
+    category: string | null;
+    banner_image_url: string | null;
+    slots_total: number;
+    slots_filled: number;
   };
 }
 
@@ -262,9 +299,18 @@ function mapMatchRow(row: MatchRow): Match {
       hour: "numeric",
       minute: "2-digit",
     }),
+    startsAtIso: row.tournaments.starts_at,
     status: row.tournaments.status,
     roomId: null,
     roomPassword: null,
+    entryFee: row.tournaments.entry_fee,
+    prizePool: row.tournaments.prize_pool,
+    perKill: row.tournaments.per_kill,
+    entryPerPlayer: row.tournaments.entry_per_player,
+    category: row.tournaments.category,
+    bannerImageUrl: row.tournaments.banner_image_url,
+    slotsTotal: row.tournaments.slots_total,
+    slotsFilled: row.tournaments.slots_filled,
   };
 }
 
@@ -277,7 +323,7 @@ export async function fetchMyMatches(
   const { data, error } = await supabase
     .from("entries")
     .select(
-      "id, squad_name, players, tournament_id, tournaments(name, mode, map, starts_at, status)"
+      "id, squad_name, players, tournament_id, tournaments(name, mode, map, starts_at, status, entry_fee, prize_pool, per_kill, entry_per_player, category, banner_image_url, slots_total, slots_filled)"
     )
     .eq("user_id", userId)
     .eq("status", "confirmed")

@@ -11,7 +11,18 @@ export interface Match {
   mode: TournamentMode;
   map: string;
   startsAt: string; // formatted for display
+  startsAtIso: string;
   status: TournamentStatus;
   roomId: string | null;
   roomPassword: string | null;
+  // Same fields TournamentDetailCard needs — carried along so My Matches
+  // can render the identical card instead of a separate, thinner one.
+  entryFee: number;
+  prizePool: number;
+  perKill: number;
+  entryPerPlayer: number;
+  category: string | null;
+  bannerImageUrl: string | null;
+  slotsTotal: number;
+  slotsFilled: number;
 }

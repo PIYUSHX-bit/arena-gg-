@@ -1,6 +1,8 @@
 export interface LeaderboardRow {
+  userId: string;
   displayName: string;
   avatarColor: string;
+  avatarUrl: string | null;
   wins: number;
   totalKills: number;
   totalEarnings: number; // rupees actually won
