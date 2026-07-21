@@ -65,8 +65,15 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
   // there's genuinely nothing left to do, or — once the match itself
   // has completed — show the post-match vote-to-flag screen instead of
   // redirecting away.
+  //
+  // Only ever runs once, on first mount (guarded by `step === "checking"`
+  // below) — depending on the whole `user` object here would re-run it
+  // any time Supabase re-emits a fresh (but equivalent) user object, e.g.
+  // on token refresh or a tab regaining focus. Without the guard, that
+  // could fire right after payment succeeds and yank the player off the
+  // success screen straight to My Matches.
   useEffect(() => {
-    if (!user) return;
+    if (!user || step !== "checking") return;
     let cancelled = false;
 
     fetchMyEntryForTournament(tournament.id, user.id).then(({ entry }) => {
@@ -91,7 +98,8 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     return () => {
       cancelled = true;
     };
-  }, [user, tournament.id, tournament.status, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, tournament.id, tournament.status, navigate, step]);
 
   useEffect(() => {
     if (!user || step !== "payment") return;
