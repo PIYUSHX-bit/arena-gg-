@@ -25,7 +25,7 @@ export default function TournamentRoster({ tournamentId }: TournamentRosterProps
   return (
     <div className="border-t border-line pt-5 mt-1">
       <div className="flex items-center gap-2 mb-3">
-        <Users size={15} className="text-muted" />
+        <Users size={15} className="text-zone" />
         <h3 className="text-sm font-semibold">
           Joined Players {!loading && `(${roster.length})`}
         </h3>
@@ -34,22 +34,24 @@ export default function TournamentRoster({ tournamentId }: TournamentRosterProps
       {loading && <p className="text-xs text-muted py-2">Loading...</p>}
 
       {!loading && roster.length === 0 && (
-        <p className="text-xs text-muted py-2">
-          No one has joined yet — be the first.
-        </p>
+        <div className="text-center py-6 border border-dashed border-line rounded-lg">
+          <p className="text-xs text-muted">
+            No one has joined yet — be the first.
+          </p>
+        </div>
       )}
 
       {!loading && roster.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="border border-line bg-surface rounded-xl divide-y divide-line overflow-hidden">
           {roster.map((entry, i) => (
             <div
               key={`${entry.squadName}-${i}`}
-              className="flex items-start gap-2.5 bg-surface border border-line rounded-lg px-3.5 py-2.5"
+              className="flex items-start gap-3 px-4 py-3"
             >
-              <span className="font-mono text-[11px] text-muted w-4 shrink-0 pt-0.5">
+              <span className="shrink-0 w-7 h-7 rounded-full bg-zone/15 text-zone font-mono text-[11px] font-semibold flex items-center justify-center mt-0.5">
                 {i + 1}
               </span>
-              <div className="min-w-0 flex flex-col gap-0.5">
+              <div className="min-w-0 flex flex-col gap-1 py-0.5">
                 {entry.players.map((p, j) => (
                   <div key={j} className="text-xs truncate">
                     <span className="font-medium text-ink">{p.ign}</span>

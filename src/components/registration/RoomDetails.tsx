@@ -1,11 +1,54 @@
 import { useEffect, useState } from "react";
-import { Lock, KeyRound } from "lucide-react";
+import { Lock, KeyRound, DoorOpen } from "lucide-react";
 import { fetchTournamentRoom, type TournamentRoomInfo } from "../../lib/entries";
 import CopyIconButton from "../common/CopyIconButton";
 
 interface RoomDetailsProps {
   tournamentId: string;
   startsAtIso: string;
+}
+
+function RoomRow({
+  label,
+  value,
+  placeholder,
+  locked,
+}: {
+  label: string;
+  value: string | null;
+  placeholder: string;
+  locked?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3.5">
+      <div className="flex items-center gap-3 min-w-0">
+        <span
+          className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
+            value ? "bg-zone/15" : "bg-surface-2"
+          }`}
+        >
+          {locked ? (
+            <Lock size={15} className="text-muted" />
+          ) : (
+            <KeyRound size={15} className={value ? "text-zone" : "text-muted"} />
+          )}
+        </span>
+        <div className="min-w-0">
+          <div className="text-[10px] text-muted uppercase tracking-wide mb-0.5">
+            {label}
+          </div>
+          {value ? (
+            <div className="text-base font-mono font-semibold text-ink truncate">
+              {value}
+            </div>
+          ) : (
+            <div className="text-xs text-muted">{placeholder}</div>
+          )}
+        </div>
+      </div>
+      {value && <CopyIconButton value={value} />}
+    </div>
+  );
 }
 
 export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsProps) {
@@ -43,49 +86,23 @@ export default function RoomDetails({ tournamentId, startsAtIso }: RoomDetailsPr
   const showPassword = matchStarted && !!room?.roomPassword;
 
   return (
-    <div className="border border-line rounded-lg divide-y divide-line overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <KeyRound size={14} className="text-zone shrink-0" />
-          <div className="min-w-0">
-            <div className="text-[10px] text-muted uppercase tracking-wide">
-              Room ID
-            </div>
-            <div className="text-sm font-mono truncate">
-              {room?.roomId || (
-                <span className="text-muted font-body">
-                  Drops 15 min before start
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        {room?.roomId && <CopyIconButton value={room.roomId} />}
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <DoorOpen size={15} className="text-zone" />
+        <h3 className="text-sm font-semibold">Room Details</h3>
       </div>
-
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2 min-w-0">
-          {showPassword ? (
-            <KeyRound size={14} className="text-zone shrink-0" />
-          ) : (
-            <Lock size={14} className="text-muted shrink-0" />
-          )}
-          <div className="min-w-0">
-            <div className="text-[10px] text-muted uppercase tracking-wide">
-              Password
-            </div>
-            {showPassword ? (
-              <div className="text-sm font-mono truncate">
-                {room!.roomPassword}
-              </div>
-            ) : (
-              <div className="text-xs text-muted">
-                {matchStarted ? "Not set yet" : "Unlocks at match start"}
-              </div>
-            )}
-          </div>
-        </div>
-        {showPassword && <CopyIconButton value={room!.roomPassword!} />}
+      <div className="border border-line bg-surface rounded-xl divide-y divide-line overflow-hidden">
+        <RoomRow
+          label="Room ID"
+          value={room?.roomId ?? null}
+          placeholder="Drops 15 min before start"
+        />
+        <RoomRow
+          label="Password"
+          value={showPassword ? room!.roomPassword : null}
+          placeholder={matchStarted ? "Not set yet" : "Unlocks at match start"}
+          locked={!showPassword}
+        />
       </div>
     </div>
   );

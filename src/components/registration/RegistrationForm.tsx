@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PartyPopper, Flag } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { createEntry, fetchMyEntryForTournament } from "../../lib/entries";
 import { fetchProfile, updateProfile } from "../../lib/profile";
@@ -10,12 +11,13 @@ import SquadMemberInput from "./SquadMemberInput";
 import PrizeDetails from "./PrizeDetails";
 import TournamentRoster from "./TournamentRoster";
 import RoomDetails from "./RoomDetails";
+import VoteToBanPanel from "./VoteToBanPanel";
 
 interface RegistrationFormProps {
   tournament: Tournament;
 }
 
-type Step = "checking" | "roster" | "payment" | "already-joined" | "done";
+type Step = "checking" | "roster" | "payment" | "done" | "completed" | "ended";
 
 function emptyPlayer(): PlayerInfo {
   return { ign: "", uid: "" };
@@ -65,7 +67,10 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
   // entries has a unique (tournament_id, user_id) constraint, so a
   // second registration attempt would otherwise just fail with a
   // constraint-violation error after filling out the whole form. Check
-  // upfront instead: resume a pending payment, or show "already joined".
+  // upfront instead: resume a pending payment, bounce to My Matches if
+  // there's genuinely nothing left to do, or — once the match itself
+  // has completed — show the post-match vote-to-flag screen instead of
+  // redirecting away.
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
@@ -74,10 +79,16 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
       if (cancelled) return;
 
       if (entry?.status === "confirmed") {
-        setStep("already-joined");
+        if (tournament.status === "completed") {
+          setStep("completed");
+        } else {
+          navigate("/matches?status=upcoming", { replace: true });
+        }
       } else if (entry?.status === "pending_payment") {
         setEntryId(entry.entryId);
         setStep("payment");
+      } else if (tournament.status === "completed") {
+        setStep("ended");
       } else {
         setStep("roster");
       }
@@ -86,7 +97,7 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     return () => {
       cancelled = true;
     };
-  }, [user, tournament.id]);
+  }, [user, tournament.id, tournament.status, navigate]);
 
   useEffect(() => {
     if (!user || step !== "payment") return;
@@ -178,45 +189,57 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     return <p className="text-center text-muted text-sm py-8">Loading...</p>;
   }
 
-  if (step === "already-joined") {
+  if (step === "ended") {
     return (
-      <div className="flex flex-col gap-5">
-        <div className="text-center py-6 border border-safe/30 bg-safe/10 rounded-lg">
-          <p className="text-safe text-lg mb-2">You're already in ✓</p>
-          <p className="text-muted text-sm px-4">
-            You've already registered for {tournament.name}. Room ID drops
-            15 minutes before start.
-          </p>
-          <button
-            onClick={() => navigate("/matches?status=upcoming")}
-            className="text-ember text-sm hover:underline mt-3"
-          >
-            View My Matches →
-          </button>
+      <div className="text-center py-10">
+        <p className="text-ink font-medium mb-1">This match has ended</p>
+        <p className="text-muted text-sm">
+          {tournament.name} is already completed, and you weren't registered
+          for it.
+        </p>
+      </div>
+    );
+  }
+
+  if (step === "completed") {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="text-center py-6 px-5 rounded-xl border border-line bg-surface">
+          <span className="inline-flex w-12 h-12 rounded-full bg-line/40 items-center justify-center mb-3">
+            <Flag size={20} className="text-muted" />
+          </span>
+          <p className="font-display font-bold text-lg mb-1">Match Completed</p>
+          <p className="text-muted text-sm">{tournament.name}</p>
         </div>
 
-        <RoomDetails tournamentId={tournament.id} startsAtIso={tournament.startsAtIso} />
-
-        <TournamentRoster tournamentId={tournament.id} />
+        <VoteToBanPanel tournamentId={tournament.id} />
       </div>
     );
   }
 
   if (step === "done") {
     return (
-      <div className="flex flex-col gap-5">
-        <div className="text-center py-8">
-          <p className="text-safe text-lg mb-2">You're in the zone.</p>
-          <p className="text-muted text-sm mb-6">
-            You're registered for {tournament.name}. Room ID drops 15 minutes
-            before start.
-          </p>
-          <button
-            onClick={() => navigate("/matches?status=upcoming")}
-            className="text-ember text-sm hover:underline"
-          >
-            View My Matches →
-          </button>
+      <div className="flex flex-col gap-6">
+        <div className="relative text-center py-8 px-5 rounded-xl border border-safe/30 bg-gradient-to-br from-safe/10 via-surface to-surface overflow-hidden">
+          <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full border border-safe/20" />
+          <div className="relative z-[1]">
+            <span className="inline-flex w-14 h-14 rounded-full bg-safe/15 items-center justify-center mb-4">
+              <PartyPopper size={26} className="text-safe" />
+            </span>
+            <p className="font-display font-bold text-xl text-safe mb-2">
+              You're in the zone!
+            </p>
+            <p className="text-muted text-sm mb-5 px-2">
+              You're registered for <span className="text-ink">{tournament.name}</span>.
+              Room ID drops 15 minutes before start.
+            </p>
+            <button
+              onClick={() => navigate("/matches?status=upcoming")}
+              className="bg-ember text-base font-semibold text-sm px-5 py-2.5 rounded-full transition-transform hover:-translate-y-0.5"
+            >
+              View My Matches →
+            </button>
+          </div>
         </div>
 
         <RoomDetails tournamentId={tournament.id} startsAtIso={tournament.startsAtIso} />
