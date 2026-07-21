@@ -4,6 +4,8 @@ import AuthPage from "./components/auth/AuthPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ProfileCompletionGuard from "./components/auth/ProfileCompletionGuard";
 import CompleteProfilePage from "./components/auth/CompleteProfilePage";
+import ReferralGate from "./components/auth/ReferralGate";
+import RedeemCodePage from "./components/auth/RedeemCodePage";
 import DashboardPage from "./components/dashboard/DashboardPage";
 import ProfilePage from "./components/profile/ProfilePage";
 import PublicProfilePage from "./components/profile/PublicProfilePage";
@@ -39,13 +41,19 @@ export default function App() {
             path="/dashboard"
             element={protect(
               <ProfileCompletionGuard>
-                <DashboardPage />
+                <ReferralGate>
+                  <DashboardPage />
+                </ReferralGate>
               </ProfileCompletionGuard>
             )}
           />
           <Route
             path="/complete-profile"
             element={protect(<CompleteProfilePage />)}
+          />
+          <Route
+            path="/redeem-code"
+            element={protect(<RedeemCodePage />)}
           />
           <Route path="/profile" element={protect(<ProfilePage />)} />
           <Route

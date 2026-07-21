@@ -7,6 +7,8 @@ interface ProfileRow {
   ff_ign: string | null;
   ff_uid: string | null;
   phone_number: string | null;
+  referral_code: string | null;
+  referred_by: string | null;
   avatar_color: string;
   avatar_url: string | null;
   important_notice_enabled: boolean;
@@ -21,6 +23,8 @@ function mapProfileRow(row: ProfileRow): Profile {
     ffIgn: row.ff_ign,
     ffUid: row.ff_uid,
     phoneNumber: row.phone_number,
+    referralCode: row.referral_code,
+    referredBy: row.referred_by,
     avatarColor: row.avatar_color,
     avatarUrl: row.avatar_url,
     importantNoticeEnabled: row.important_notice_enabled,
@@ -73,6 +77,16 @@ export async function updateProfile(
       }),
     })
     .eq("id", userId);
+
+  return { error: error?.message ?? null };
+}
+
+export async function redeemReferralCode(
+  code: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc("redeem_referral_code", {
+    p_code: code,
+  });
 
   return { error: error?.message ?? null };
 }

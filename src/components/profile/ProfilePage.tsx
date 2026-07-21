@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Gift } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { fetchProfile, fetchProfileStats, updateProfile } from "../../lib/profile";
 import { uploadAvatar } from "../../lib/avatar";
 import type { Profile, ProfileStats } from "../../types/profile";
 import ProfileField from "./ProfileField";
 import ProfileStatsRow from "./ProfileStatsRow";
+import CopyIconButton from "../common/CopyIconButton";
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
@@ -206,6 +207,26 @@ export default function ProfilePage() {
       {stats && (
         <div className="mb-8">
           <ProfileStatsRow stats={stats} />
+        </div>
+      )}
+
+      {profile?.referralCode && (
+        <div className="bg-gradient-to-br from-zone/15 via-surface to-surface border border-zone/30 rounded-lg p-5 mb-6">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Gift size={16} className="text-zone" />
+            <h2 className="font-display font-semibold text-base">
+              Invite a Friend
+            </h2>
+          </div>
+          <p className="text-xs text-muted mb-4">
+            Share your code — you both get ₹10 when they join.
+          </p>
+          <div className="flex items-center justify-between bg-surface-2 border border-line rounded px-4 py-3">
+            <span className="font-mono text-lg tracking-widest text-amber">
+              {profile.referralCode}
+            </span>
+            <CopyIconButton value={profile.referralCode} />
+          </div>
         </div>
       )}
 

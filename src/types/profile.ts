@@ -4,6 +4,8 @@ export interface Profile {
   ffIgn: string | null;
   ffUid: string | null;
   phoneNumber: string | null;
+  referralCode: string | null;
+  referredBy: string | null;
   avatarColor: string;
   avatarUrl: string | null;
   importantNoticeEnabled: boolean;
