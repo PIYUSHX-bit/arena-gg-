@@ -13,6 +13,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "earn", label: "Earn" },
 ];
 
+const DISPLAY_LIMIT = 25;
+
 function isTab(value: string | null): value is Tab {
   return value === "kills" || value === "wins" || value === "earn";
 }
@@ -58,7 +60,10 @@ export default function LeaderboardPage() {
     } else {
       sorted.sort((a, b) => b.totalEarnings - a.totalEarnings);
     }
-    return sorted;
+    // Fetches a bigger pool (see fetchLeaderboard(100) below) so a player
+    // who tops kills/wins but isn't in the earnings-sorted top 25 is
+    // still ranked correctly here — the display itself is capped to 25.
+    return sorted.slice(0, DISPLAY_LIMIT);
   }, [rows, activeTab]);
 
   function valueFor(row: LeaderboardRow): string {

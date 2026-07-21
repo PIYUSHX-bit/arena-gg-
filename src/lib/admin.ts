@@ -286,6 +286,27 @@ export async function broadcastNotification(
   return { recipientCount: data as number, error: null };
 }
 
+// Fans the same broadcast out as an actual OS-level push notification via
+// the send-push Edge Function — broadcast_notification above only ever
+// writes a row into `notifications`, which a player only sees if they
+// open the app. Best-effort: a push failure shouldn't undo the broadcast
+// that already landed in-app, so this is called separately and its
+// error is reported without rolling anything back.
+export async function sendPushBroadcast(
+  title: string,
+  body: string
+): Promise<{ sent: number | null; error: string | null }> {
+  const { data, error } = await supabase.functions.invoke("send-push", {
+    body: { title, body },
+  });
+
+  if (error || data?.error) {
+    return { sent: null, error: data?.error ?? error?.message ?? "Push send failed" };
+  }
+
+  return { sent: data.sent, error: null };
+}
+
 export interface PendingWithdrawal {
   id: string;
   userId: string;

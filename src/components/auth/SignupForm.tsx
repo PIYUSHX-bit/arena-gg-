@@ -9,6 +9,7 @@ interface SignupFormProps {
 export default function SignupForm({ onSuccess }: SignupFormProps) {
   const { signUp } = useAuth();
   const [displayName, setDisplayName] = useState("");
+  const [ffIgn, setFfIgn] = useState("");
   const [ffUid, setFfUid] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
@@ -26,8 +27,18 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
       return;
     }
 
+    if (!ffIgn.trim()) {
+      setError("Free Fire IGN is required.");
+      return;
+    }
+
     if (!ffUid.trim()) {
       setError("Free Fire UID is required.");
+      return;
+    }
+
+    if (!phoneNumber.trim()) {
+      setError("Phone number is required.");
       return;
     }
 
@@ -36,8 +47,9 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
       email,
       password,
       displayName,
+      ffIgn.trim(),
       ffUid.trim(),
-      phoneNumber.trim() || undefined
+      phoneNumber.trim()
     );
     setSubmitting(false);
 
@@ -78,6 +90,16 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
         maxLength={24}
       />
       <AuthInput
+        id="signup-ff-ign"
+        label="Free Fire IGN"
+        type="text"
+        value={ffIgn}
+        onChange={(e) => setFfIgn(e.target.value)}
+        placeholder="Your exact in-game name"
+        required
+        maxLength={24}
+      />
+      <AuthInput
         id="signup-ff-uid"
         label="Free Fire UID"
         type="text"
@@ -90,12 +112,13 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
       />
       <AuthInput
         id="signup-phone"
-        label="Phone Number (optional)"
+        label="Phone Number"
         type="tel"
         autoComplete="tel"
         value={phoneNumber}
         onChange={(e) => setPhoneNumber(e.target.value)}
         placeholder="+91 98765 43210"
+        required
       />
       <AuthInput
         id="signup-email"

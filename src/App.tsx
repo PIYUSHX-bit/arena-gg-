@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import LandingPage from "./components/landing/LandingPage";
 import AuthPage from "./components/auth/AuthPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ProfileCompletionGuard from "./components/auth/ProfileCompletionGuard";
+import CompleteProfilePage from "./components/auth/CompleteProfilePage";
 import DashboardPage from "./components/dashboard/DashboardPage";
 import ProfilePage from "./components/profile/ProfilePage";
 import PublicProfilePage from "./components/profile/PublicProfilePage";
@@ -32,9 +33,20 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<AuthPage />} />
-          <Route path="/dashboard" element={protect(<DashboardPage />)} />
+          <Route
+            path="/dashboard"
+            element={protect(
+              <ProfileCompletionGuard>
+                <DashboardPage />
+              </ProfileCompletionGuard>
+            )}
+          />
+          <Route
+            path="/complete-profile"
+            element={protect(<CompleteProfilePage />)}
+          />
           <Route path="/profile" element={protect(<ProfilePage />)} />
           <Route
             path="/profile/view/:userId"

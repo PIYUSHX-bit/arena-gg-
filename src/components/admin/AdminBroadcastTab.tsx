@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { broadcastNotification } from "../../lib/admin";
+import { broadcastNotification, sendPushBroadcast } from "../../lib/admin";
 
 export default function AdminBroadcastTab() {
   const [title, setTitle] = useState("");
@@ -29,13 +29,19 @@ export default function AdminBroadcastTab() {
       title.trim(),
       body.trim()
     );
-    setSending(false);
 
     if (sendError) {
+      setSending(false);
       setError(sendError);
       return;
     }
 
+    // Best-effort — the in-app notification already landed either way,
+    // so a push failure (e.g. no one has enabled push yet) is reported
+    // but doesn't undo the broadcast above.
+    await sendPushBroadcast(title.trim(), body.trim());
+
+    setSending(false);
     setSentCount(recipientCount);
     setTitle("");
     setBody("");

@@ -3,6 +3,7 @@ export interface Profile {
   displayName: string;
   ffIgn: string | null;
   ffUid: string | null;
+  phoneNumber: string | null;
   avatarColor: string;
   avatarUrl: string | null;
   importantNoticeEnabled: boolean;

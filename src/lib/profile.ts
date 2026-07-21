@@ -6,6 +6,7 @@ interface ProfileRow {
   display_name: string;
   ff_ign: string | null;
   ff_uid: string | null;
+  phone_number: string | null;
   avatar_color: string;
   avatar_url: string | null;
   important_notice_enabled: boolean;
@@ -19,6 +20,7 @@ function mapProfileRow(row: ProfileRow): Profile {
     displayName: row.display_name,
     ffIgn: row.ff_ign,
     ffUid: row.ff_uid,
+    phoneNumber: row.phone_number,
     avatarColor: row.avatar_color,
     avatarUrl: row.avatar_url,
     importantNoticeEnabled: row.important_notice_enabled,
@@ -49,6 +51,7 @@ export async function updateProfile(
     displayName?: string;
     ffIgn?: string;
     ffUid?: string;
+    phoneNumber?: string;
     avatarUrl?: string;
     importantNoticeEnabled?: boolean;
   }
@@ -61,6 +64,9 @@ export async function updateProfile(
       }),
       ...(updates.ffIgn !== undefined && { ff_ign: updates.ffIgn }),
       ...(updates.ffUid !== undefined && { ff_uid: updates.ffUid }),
+      ...(updates.phoneNumber !== undefined && {
+        phone_number: updates.phoneNumber,
+      }),
       ...(updates.avatarUrl !== undefined && { avatar_url: updates.avatarUrl }),
       ...(updates.importantNoticeEnabled !== undefined && {
         important_notice_enabled: updates.importantNoticeEnabled,
