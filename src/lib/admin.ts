@@ -307,6 +307,54 @@ export async function saveTournamentNote(
   return { error: error?.message ?? null };
 }
 
+export interface GiftCardStockRow {
+  denomination: number;
+  available: number;
+  assigned: number;
+}
+
+export async function fetchGiftCardStockAdmin(): Promise<{
+  stock: GiftCardStockRow[];
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from("gift_card_codes")
+    .select("denomination, status");
+
+  if (error) {
+    return { stock: [], error: error.message };
+  }
+
+  const byDenom = new Map<number, GiftCardStockRow>();
+  for (const row of data as { denomination: number; status: string }[]) {
+    const entry = byDenom.get(row.denomination) ?? {
+      denomination: row.denomination,
+      available: 0,
+      assigned: 0,
+    };
+    if (row.status === "available") entry.available++;
+    else entry.assigned++;
+    byDenom.set(row.denomination, entry);
+  }
+
+  const stock = [...byDenom.values()].sort(
+    (a, b) => a.denomination - b.denomination
+  );
+
+  return { stock, error: null };
+}
+
+export async function addGiftCardCode(
+  denomination: number,
+  code: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("gift_card_codes")
+    .insert({ denomination, code, status: "available" });
+
+  return { error: error?.message ?? null };
+}
+
 export async function broadcastNotification(
   title: string,
   body: string

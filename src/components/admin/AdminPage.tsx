@@ -9,11 +9,13 @@ import AdminPayoutsTab from "./AdminPayoutsTab";
 import AdminRulesTab from "./AdminRulesTab";
 import AdminAnnouncementTab from "./AdminAnnouncementTab";
 import AdminBroadcastTab from "./AdminBroadcastTab";
+import AdminGiftCardsTab from "./AdminGiftCardsTab";
 
 type Tab =
   | "withdrawals"
   | "tournaments"
   | "payouts"
+  | "giftcards"
   | "rules"
   | "announcement"
   | "broadcast";
@@ -21,6 +23,7 @@ type Tab =
 const TABS: { id: Tab; label: string }[] = [
   { id: "tournaments", label: "Matches" },
   { id: "payouts", label: "Payouts" },
+  { id: "giftcards", label: "Gift Cards" },
   { id: "withdrawals", label: "Withdrawals" },
   { id: "rules", label: "Rules" },
   { id: "announcement", label: "Banner" },
@@ -79,6 +82,9 @@ export default function AdminPage() {
           <AdminTournamentsTab />
         )}
         {isAdmin === true && activeTab === "payouts" && <AdminPayoutsTab />}
+        {isAdmin === true && activeTab === "giftcards" && (
+          <AdminGiftCardsTab />
+        )}
         {isAdmin === true && activeTab === "withdrawals" && (
           <WithdrawalRequestsTab />
         )}

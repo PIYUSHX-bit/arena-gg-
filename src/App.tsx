@@ -13,6 +13,7 @@ import MatchesPage from "./components/matches/MatchesPage";
 import LeaderboardPage from "./components/leaderboard/LeaderboardPage";
 import MenuPage from "./components/menu/MenuPage";
 import WalletPage from "./components/wallet/WalletPage";
+import GiftCardsPage from "./components/wallet/GiftCardsPage";
 import StatisticsPage from "./components/menu/StatisticsPage";
 import TopPlayersPage from "./components/menu/TopPlayersPage";
 import NotificationsPage from "./components/menu/NotificationsPage";
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="/leaderboard" element={protect(<LeaderboardPage />)} />
           <Route path="/menu" element={protect(<MenuPage />)} />
           <Route path="/wallet" element={protect(<WalletPage />)} />
+          <Route path="/gift-cards" element={protect(<GiftCardsPage />)} />
           <Route path="/statistics" element={protect(<StatisticsPage />)} />
           <Route path="/top-players" element={protect(<TopPlayersPage />)} />
           <Route path="/notifications" element={protect(<NotificationsPage />)} />
