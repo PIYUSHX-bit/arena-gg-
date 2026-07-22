@@ -7,11 +7,13 @@ export default function AdminBroadcastTab() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentCount, setSentCount] = useState<number | null>(null);
+  const [pushError, setPushError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
   function handleSendClick() {
     setError(null);
     setSentCount(null);
+    setPushError(null);
 
     if (!title.trim()) {
       setError("Title is required.");
@@ -39,10 +41,14 @@ export default function AdminBroadcastTab() {
     // Best-effort — the in-app notification already landed either way,
     // so a push failure (e.g. no one has enabled push yet) is reported
     // but doesn't undo the broadcast above.
-    await sendPushBroadcast(title.trim(), body.trim());
+    const { error: pushSendError } = await sendPushBroadcast(
+      title.trim(),
+      body.trim()
+    );
 
     setSending(false);
     setSentCount(recipientCount);
+    setPushError(pushSendError);
     setTitle("");
     setBody("");
   }
@@ -89,7 +95,12 @@ export default function AdminBroadcastTab() {
 
       {sentCount !== null && (
         <p className="text-xs text-safe bg-safe/10 border border-safe/30 rounded px-3 py-2">
-          Sent to {sentCount} player{sentCount === 1 ? "" : "s"}.
+          Sent to {sentCount} player{sentCount === 1 ? "" : "s"} in-app.
+          {pushError && (
+            <span className="block text-ember mt-1">
+              Push notification failed: {pushError}
+            </span>
+          )}
         </p>
       )}
 
