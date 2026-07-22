@@ -39,6 +39,16 @@ export async function enablePushNotifications(
       return { error: "Notification permission was not granted." };
     }
 
+    // A registration can only hold one subscription, keyed to whichever
+    // VAPID public key it was created with. If the app's key has rotated
+    // since the last subscribe, calling subscribe() again without
+    // unsubscribing first throws InvalidStateError — so always clear
+    // any stale subscription before creating the current one.
+    const existing = await registration.pushManager.getSubscription();
+    if (existing) {
+      await existing.unsubscribe();
+    }
+
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,

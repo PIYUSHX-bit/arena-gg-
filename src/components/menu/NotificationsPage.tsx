@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, CheckCircle2, Wallet, Trophy, ArrowDownToLine, Megaphone, BellRing } from "lucide-react";
+import { Bell, CheckCircle2, Wallet, Trophy, ArrowDownToLine, Megaphone, BellRing, Loader2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -80,7 +80,7 @@ export default function NotificationsPage() {
   return (
     <SubPageShell title="Notifications">
       {pushStatus === "prompt" && (
-        <div className="flex items-center gap-3 bg-surface border border-line rounded-lg px-4 py-3.5 mb-4">
+        <div className="flex items-center gap-3 bg-gradient-to-br from-ember/10 via-surface to-surface border border-ember/25 rounded-lg px-4 py-3.5 mb-4">
           <span className="shrink-0 w-9 h-9 rounded-full bg-ember/15 flex items-center justify-center">
             <BellRing size={16} className="text-ember" />
           </span>
@@ -94,9 +94,10 @@ export default function NotificationsPage() {
           <button
             onClick={handleEnablePush}
             disabled={pushEnabling}
-            className="shrink-0 bg-ember text-base font-semibold text-xs px-3 py-2 rounded-full disabled:opacity-50"
+            className="shrink-0 flex items-center gap-1.5 bg-ember text-base font-semibold text-xs px-3.5 py-2 rounded-full transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
           >
-            {pushEnabling ? "..." : "Enable"}
+            {pushEnabling && <Loader2 size={12} className="animate-spin" />}
+            {pushEnabling ? "Enabling..." : "Enable"}
           </button>
         </div>
       )}
