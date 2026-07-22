@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Zap } from "lucide-react";
+import { MessageSquare, Zap } from "lucide-react";
 import {
   fetchAllTournaments,
   fetchTournamentEntries,
+  fetchTournamentNote,
   payEntryPrize,
+  saveTournamentNote,
   type AdminTournament,
   type TournamentEntry,
 } from "../../lib/admin";
@@ -306,6 +308,102 @@ export default function AdminPayoutsTab() {
             onPaid={() => loadEntries(tournamentId)}
           />
         ))}
+
+      {!loadingEntries && tournamentId && entries.length > 0 && (
+        <MatchNote tournamentId={tournamentId} />
+      )}
+    </div>
+  );
+}
+
+// Admin-only note against this specific match — e.g. "kills verified from
+// stream VOD" or "Squad Alpha DQ'd for teaming". Deliberately placed after
+// the player/entry list rather than up top, since it's context the admin
+// adds once they've actually looked at the entries.
+function MatchNote({ tournamentId }: { tournamentId: string }) {
+  const [note, setNote] = useState("");
+  const [savedNote, setSavedNote] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setSavedAt(null);
+    fetchTournamentNote(tournamentId).then(({ note: n, error: err }) => {
+      if (cancelled) return;
+      setNote(n);
+      setSavedNote(n);
+      setError(err);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tournamentId]);
+
+  const dirty = note !== savedNote;
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    const { error: saveError } = await saveTournamentNote(tournamentId, note);
+    setSaving(false);
+
+    if (saveError) {
+      setError(saveError);
+      return;
+    }
+
+    setSavedNote(note);
+    setSavedAt(Date.now());
+  }
+
+  return (
+    <div className="bg-surface border border-line rounded-lg px-4 py-3.5">
+      <div className="flex items-center gap-1.5 mb-2">
+        <MessageSquare size={14} className="text-zone" />
+        <span className="text-sm font-medium">Match Note</span>
+        <span className="text-[10px] text-muted">(admin-only)</span>
+      </div>
+
+      {loading ? (
+        <p className="text-xs text-muted">Loading...</p>
+      ) : (
+        <>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            placeholder="e.g. Kills cross-checked against stream VOD at 1:32:00. Squad Alpha disqualified for teaming."
+            className="w-full bg-surface-2 border border-line rounded px-3 py-2 text-sm outline-none focus:border-ember resize-none mb-2"
+          />
+
+          {error && (
+            <p className="text-xs text-ember bg-ember/10 border border-ember/30 rounded px-3 py-2 mb-2">
+              {error}
+            </p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSave}
+              disabled={saving || !dirty}
+              className="bg-ember text-base font-semibold text-xs px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? "Saving..." : "Save Note"}
+            </button>
+            {!dirty && savedAt && (
+              <span className="text-[11px] text-safe">Saved</span>
+            )}
+            {dirty && (
+              <span className="text-[11px] text-muted">Unsaved changes</span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

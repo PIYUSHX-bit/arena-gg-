@@ -270,6 +270,43 @@ export async function payEntryPrize(
   return { error: error?.message ?? null };
 }
 
+export async function fetchTournamentNote(
+  tournamentId: string
+): Promise<{ note: string; error: string | null }> {
+  const { data, error } = await supabase
+    .from("tournament_admin_notes")
+    .select("note")
+    .eq("tournament_id", tournamentId)
+    .maybeSingle();
+
+  if (error) {
+    return { note: "", error: error.message };
+  }
+
+  return { note: data?.note ?? "", error: null };
+}
+
+export async function saveTournamentNote(
+  tournamentId: string,
+  note: string
+): Promise<{ error: string | null }> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("tournament_admin_notes").upsert(
+    {
+      tournament_id: tournamentId,
+      note,
+      updated_at: new Date().toISOString(),
+      updated_by: user?.id ?? null,
+    },
+    { onConflict: "tournament_id" }
+  );
+
+  return { error: error?.message ?? null };
+}
+
 export async function broadcastNotification(
   title: string,
   body: string
