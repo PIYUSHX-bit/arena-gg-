@@ -18,9 +18,9 @@ import TopPlayersPage from "./components/menu/TopPlayersPage";
 import NotificationsPage from "./components/menu/NotificationsPage";
 import ContactPage from "./components/menu/ContactPage";
 import FaqPage from "./components/menu/FaqPage";
-import AboutPage from "./components/menu/AboutPage";
 import PrivacyPage from "./components/menu/PrivacyPage";
 import TermsPage from "./components/menu/TermsPage";
+import LanguagePage from "./components/menu/LanguagePage";
 import RegistrationPage from "./components/registration/RegistrationPage";
 import TournamentsBrowsePage from "./components/tournaments/TournamentsBrowsePage";
 import GameModeTournamentsPage from "./components/tournaments/GameModeTournamentsPage";
@@ -69,9 +69,12 @@ export default function App() {
           <Route path="/notifications" element={protect(<NotificationsPage />)} />
           <Route path="/contact" element={protect(<ContactPage />)} />
           <Route path="/faq" element={protect(<FaqPage />)} />
-          <Route path="/about" element={protect(<AboutPage />)} />
+          {/* About Us was merged into Terms & Conditions — keep the old
+              path resolving instead of 404ing for anyone with it bookmarked. */}
+          <Route path="/about" element={<Navigate to="/terms" replace />} />
           <Route path="/privacy" element={protect(<PrivacyPage />)} />
           <Route path="/terms" element={protect(<TermsPage />)} />
+          <Route path="/language" element={protect(<LanguagePage />)} />
           <Route
             path="/tournaments/:tournamentId/register"
             element={protect(<RegistrationPage />)}

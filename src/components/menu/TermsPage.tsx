@@ -14,7 +14,31 @@ export default function TermsPage() {
   }, []);
 
   return (
-    <SubPageShell title="Terms & Conditions">
+    <SubPageShell title="About & Terms">
+      <div className="flex flex-col gap-4 text-sm text-muted leading-relaxed mb-8">
+        <h2 className="font-display font-semibold text-lg text-ink -mb-1">
+          About ARENA.GG
+        </h2>
+        <p className="text-ink">
+          ARENA.GG runs real-cash Free Fire tournaments — Solo, Duo, and
+          Squad — for players who want competition with something on the
+          line, not just XP.
+        </p>
+        <p>
+          Every match is server-verified: results come from the match server
+          itself, not screenshots or self-reporting, so payouts are fast and
+          disputes are rare.
+        </p>
+        <p>
+          We're an independent platform and aren't affiliated with, endorsed
+          by, or sponsored by Garena or Free Fire.
+        </p>
+      </div>
+
+      <h2 className="font-display font-semibold text-lg text-ink mb-4">
+        Terms &amp; Conditions
+      </h2>
+
       <div className="bg-amber/10 border border-amber/30 rounded-lg px-4 py-3 mb-6">
         <p className="text-xs text-amber leading-relaxed">
           Placeholder text — not legal advice. Real-money skill-gaming

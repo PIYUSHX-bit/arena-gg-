@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Wallet, BarChart3, Trophy, Bell, Headphones, HelpCircle, Info, Lock, ShieldCheck, Power, ShieldAlert } from "lucide-react";
+import { ArrowLeft, User, Wallet, BarChart3, Trophy, Bell, Headphones, HelpCircle, Lock, ShieldCheck, Power, ShieldAlert, Languages } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { fetchProfile, fetchProfileStats, updateProfile } from "../../lib/profile";
 import { fetchRules } from "../../lib/rules";
@@ -129,9 +129,9 @@ export default function MenuPage() {
           }}
         />
         <MenuListItem icon={HelpCircle} label="FAQ" onClick={() => navigate("/faq")} />
-        <MenuListItem icon={Info} label="About Us" onClick={() => navigate("/about")} />
+        <MenuListItem icon={Languages} label="Language" onClick={() => navigate("/language")} />
         <MenuListItem icon={Lock} label="Privacy Policy" onClick={() => navigate("/privacy")} />
-        <MenuListItem icon={ShieldCheck} label="Terms & Conditions" onClick={() => navigate("/terms")} />
+        <MenuListItem icon={ShieldCheck} label="About & Terms" onClick={() => navigate("/terms")} />
         {profile?.isAdmin && (
           <MenuListItem icon={ShieldAlert} label="Admin Panel" onClick={() => navigate("/admin")} />
         )}
