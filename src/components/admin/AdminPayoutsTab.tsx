@@ -180,6 +180,47 @@ export default function AdminPayoutsTab() {
         </select>
       </div>
 
+      {selectedTournament && (
+        <div className="bg-surface border border-line rounded-lg px-4 py-3.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-sm font-semibold">
+              {selectedTournament.name}
+            </span>
+            <span
+              className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
+                selectedTournament.isActive
+                  ? "bg-safe/15 text-safe"
+                  : "bg-line/40 text-muted"
+              }`}
+            >
+              {selectedTournament.isActive ? "Active" : "Draft"} ·{" "}
+              {selectedTournament.status}
+            </span>
+          </div>
+          <div className="text-xs text-muted mb-2.5">
+            {selectedTournament.map} · {selectedTournament.mode} · Slots{" "}
+            {selectedTournament.slotsFilled}/{selectedTournament.slotsTotal}
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-mono text-amber mb-2.5">
+            <span>Entry {formatRupees(selectedTournament.entryFee)}</span>
+            <span>Prize Pool {formatRupees(selectedTournament.prizePool)}</span>
+            <span>Per Kill {formatRupees(selectedTournament.perKill)}</span>
+          </div>
+          {selectedTournament.prizeDistribution.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {selectedTournament.prizeDistribution.map((tier) => (
+                <span
+                  key={tier.label}
+                  className="text-[10px] font-mono bg-surface-2 border border-line rounded px-1.5 py-0.5 text-muted"
+                >
+                  {tier.label} ₹{tier.amount}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {loadingEntries && (
         <p className="text-center text-muted text-sm py-8">Loading...</p>
       )}
