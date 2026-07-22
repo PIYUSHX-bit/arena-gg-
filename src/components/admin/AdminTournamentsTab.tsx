@@ -22,6 +22,7 @@ export default function AdminTournamentsTab() {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [roomEditorId, setRoomEditorId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("all");
 
   async function load() {
     setLoading(true);
@@ -143,18 +144,24 @@ export default function AdminTournamentsTab() {
     );
   }
 
-  // Grouped by game mode so matches from different categories (Free Entry,
-  // Lone Wolf, Clash Squad, etc.) don't blur together in one long list —
-  // each mode gets its own labeled section, in the same order as the
-  // player-facing dashboard cards.
-  const groups = GAME_MODES.map((mode) => ({
+  // Tabbed by game mode so an admin picks a category (Free Entry, Lone
+  // Wolf, Clash Squad, etc.) and only sees that mode's matches, instead
+  // of every match from every mode blurring together in one long list.
+  const modeCounts = GAME_MODES.map((mode) => ({
     mode,
-    items: tournaments.filter((t) => t.category === mode.id),
-  })).filter((g) => g.items.length > 0);
+    count: tournaments.filter((t) => t.category === mode.id).length,
+  }));
 
   const uncategorized = tournaments.filter(
     (t) => !getGameModeById(t.category ?? "")
   );
+
+  const visible =
+    activeCategory === "all"
+      ? tournaments
+      : activeCategory === "uncategorized"
+        ? uncategorized
+        : tournaments.filter((t) => t.category === activeCategory);
 
   return (
     <div className="flex flex-col gap-3">
@@ -193,36 +200,88 @@ export default function AdminTournamentsTab() {
         </p>
       )}
 
-      {!loading &&
-        groups.map(({ mode, items }) => (
-          <div key={mode.id} className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                {mode.category}
+      {!loading && tournaments.length > 0 && (
+        <div className="-mx-4 px-4 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2 pb-1 w-max">
+            <button
+              onClick={() => setActiveCategory("all")}
+              className={`flex items-center gap-1.5 shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold border transition-colors ${
+                activeCategory === "all"
+                  ? "bg-ink text-base border-ink"
+                  : "border-line text-muted hover:text-ink"
+              }`}
+            >
+              All
+              <span
+                className={`text-[10px] font-bold rounded-full px-1.5 ${
+                  activeCategory === "all"
+                    ? "bg-base/20 text-base"
+                    : "bg-surface-2 text-muted"
+                }`}
+              >
+                {tournaments.length}
               </span>
-              <span className="text-[10px] font-semibold text-ink bg-surface-2 border border-line rounded-full px-1.5 py-0.5">
-                {items.length}
-              </span>
-              <div className="flex-1 h-px bg-line" />
-            </div>
-            {items.map((t) => renderCard(t))}
-          </div>
-        ))}
+            </button>
 
-      {!loading && uncategorized.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-              Uncategorized
-            </span>
-            <span className="text-[10px] font-semibold text-ink bg-surface-2 border border-line rounded-full px-1.5 py-0.5">
-              {uncategorized.length}
-            </span>
-            <div className="flex-1 h-px bg-line" />
+            {modeCounts.map(({ mode, count }) => {
+              if (count === 0) return null;
+              const Icon = mode.icon;
+              const active = activeCategory === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => setActiveCategory(mode.id)}
+                  className={`flex items-center gap-1.5 shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold border transition-colors ${
+                    active
+                      ? `bg-gradient-to-br ${mode.accentFrom} ${mode.accentTo} text-white border-transparent`
+                      : "border-line text-muted hover:text-ink"
+                  }`}
+                >
+                  <Icon size={13} />
+                  {mode.category}
+                  <span
+                    className={`text-[10px] font-bold rounded-full px-1.5 ${
+                      active ? "bg-white/20 text-white" : "bg-surface-2 text-muted"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+
+            {uncategorized.length > 0 && (
+              <button
+                onClick={() => setActiveCategory("uncategorized")}
+                className={`flex items-center gap-1.5 shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold border transition-colors ${
+                  activeCategory === "uncategorized"
+                    ? "bg-ink text-base border-ink"
+                    : "border-line text-muted hover:text-ink"
+                }`}
+              >
+                Uncategorized
+                <span
+                  className={`text-[10px] font-bold rounded-full px-1.5 ${
+                    activeCategory === "uncategorized"
+                      ? "bg-base/20 text-base"
+                      : "bg-surface-2 text-muted"
+                  }`}
+                >
+                  {uncategorized.length}
+                </span>
+              </button>
+            )}
           </div>
-          {uncategorized.map((t) => renderCard(t))}
         </div>
       )}
+
+      {!loading && tournaments.length > 0 && visible.length === 0 && (
+        <p className="text-center text-muted text-sm py-10">
+          No matches in this category.
+        </p>
+      )}
+
+      {!loading && visible.map((t) => renderCard(t))}
     </div>
   );
 }

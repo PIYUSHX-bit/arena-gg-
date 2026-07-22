@@ -27,3 +27,13 @@ body {
     animation: none !important;
   }
 }
+
+/* Hides the scrollbar on horizontally-scrolling chip/tab rows while
+   keeping the element scrollable via touch/drag/wheel. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
