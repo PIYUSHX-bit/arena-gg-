@@ -4,7 +4,6 @@ import AuthPage from "./components/auth/AuthPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ProfileCompletionGuard from "./components/auth/ProfileCompletionGuard";
 import CompleteProfilePage from "./components/auth/CompleteProfilePage";
-import ReferralGate from "./components/auth/ReferralGate";
 import RedeemCodePage from "./components/auth/RedeemCodePage";
 import DashboardPage from "./components/dashboard/DashboardPage";
 import ProfilePage from "./components/profile/ProfilePage";
@@ -42,9 +41,7 @@ export default function App() {
             path="/dashboard"
             element={protect(
               <ProfileCompletionGuard>
-                <ReferralGate>
-                  <DashboardPage />
-                </ReferralGate>
+                <DashboardPage />
               </ProfileCompletionGuard>
             )}
           />
@@ -52,6 +49,9 @@ export default function App() {
             path="/complete-profile"
             element={protect(<CompleteProfilePage />)}
           />
+          {/* Redeeming a referral code is optional now — this is reachable
+              voluntarily (e.g. from ProfilePage), not a forced gate on
+              /dashboard. */}
           <Route
             path="/redeem-code"
             element={protect(<RedeemCodePage />)}

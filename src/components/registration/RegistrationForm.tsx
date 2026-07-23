@@ -17,7 +17,14 @@ interface RegistrationFormProps {
   tournament: Tournament;
 }
 
-type Step = "checking" | "roster" | "payment" | "done" | "completed" | "ended";
+type Step =
+  | "checking"
+  | "roster"
+  | "payment"
+  | "done"
+  | "completed"
+  | "ended"
+  | "full";
 
 function emptyPlayer(): PlayerInfo {
   return { ign: "", uid: "" };
@@ -88,6 +95,12 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
         setStep("payment");
       } else if (tournament.status === "completed") {
         setStep("ended");
+      } else if (tournament.slotsLeft !== undefined && tournament.slotsLeft <= 0) {
+        // Only gates a fresh registration — a resumed pending_payment
+        // entry above still routes to the payment step, where
+        // pay_entry_from_wallet's own capacity check (locked against
+        // races) is the real source of truth.
+        setStep("full");
       } else {
         setStep("roster");
       }
@@ -183,6 +196,18 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
         <p className="text-muted text-sm">
           {tournament.name} is already completed, and you weren't registered
           for it.
+        </p>
+      </div>
+    );
+  }
+
+  if (step === "full") {
+    return (
+      <div className="text-center py-10">
+        <p className="text-ink font-medium mb-1">This match is full</p>
+        <p className="text-muted text-sm">
+          All {tournament.slotsTotal} slots for {tournament.name} are taken —
+          check back for the next one.
         </p>
       </div>
     );

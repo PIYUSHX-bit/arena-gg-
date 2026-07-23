@@ -47,6 +47,7 @@ export default function NotificationsPage() {
   >("prompt");
   const [pushError, setPushError] = useState<string | null>(null);
   const [pushEnabling, setPushEnabling] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -129,6 +130,8 @@ export default function NotificationsPage() {
         <div className="flex flex-col gap-2.5">
           {notifications.map((n) => {
             const Icon = TYPE_ICON[n.type];
+            const isLong = n.body.length > 140;
+            const expanded = expandedId === n.id;
             return (
               <div
                 key={n.id}
@@ -141,14 +144,30 @@ export default function NotificationsPage() {
                 >
                   <Icon size={16} />
                 </span>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{n.title}</span>
+                    <span className="text-sm font-medium break-words">
+                      {n.title}
+                    </span>
                     {!n.isRead && (
                       <span className="w-1.5 h-1.5 rounded-full bg-ember shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-muted mt-0.5">{n.body}</p>
+                  <p
+                    className={`text-xs text-muted mt-0.5 break-words whitespace-pre-wrap ${
+                      isLong && !expanded ? "line-clamp-3" : ""
+                    }`}
+                  >
+                    {n.body}
+                  </p>
+                  {isLong && (
+                    <button
+                      onClick={() => setExpandedId(expanded ? null : n.id)}
+                      className="text-[11px] text-ember font-medium mt-1"
+                    >
+                      {expanded ? "Show less" : "Show more"}
+                    </button>
+                  )}
                   <p className="text-[11px] text-muted mt-1.5">
                     {formatDate(n.createdAt)}
                   </p>

@@ -43,7 +43,7 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
     }
 
     setSubmitting(true);
-    const { error: signUpError } = await signUp(
+    const { error: signUpError, needsEmailConfirmation } = await signUp(
       email,
       password,
       displayName,
@@ -58,10 +58,15 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
       return;
     }
 
-    // Supabase sends a confirmation email by default. If email confirmation
-    // is disabled in your Supabase Auth settings, call onSuccess() directly
-    // instead of showing this message.
-    setConfirmSent(true);
+    // If Supabase requires email confirmation, there's no session yet —
+    // navigating now would just get bounced straight back to /login by
+    // ProtectedRoute with no explanation. Show the "check your email"
+    // message instead and let the user come back once confirmed.
+    if (needsEmailConfirmation) {
+      setConfirmSent(true);
+      return;
+    }
+
     onSuccess();
   }
 

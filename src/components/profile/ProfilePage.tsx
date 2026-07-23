@@ -227,6 +227,14 @@ export default function ProfilePage() {
             </span>
             <CopyIconButton value={profile.referralCode} />
           </div>
+          {!profile.referredBy && (
+            <button
+              onClick={() => navigate("/redeem-code")}
+              className="text-xs text-zone font-medium mt-3"
+            >
+              Have a friend's code? Redeem it →
+            </button>
+          )}
         </div>
       )}
 

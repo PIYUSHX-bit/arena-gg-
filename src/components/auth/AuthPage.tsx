@@ -22,7 +22,7 @@ export default function AuthPage() {
   // Covers the OAuth redirect back from Google/Supabase: the session
   // lands here via onAuthStateChange rather than a form submit, so
   // there's no handleSuccess() call to hook into. ProtectedRoute /
-  // ProfileCompletionGuard / ReferralGate take it from here.
+  // ProfileCompletionGuard takes it from here.
   useEffect(() => {
     if (user) {
       navigate("/dashboard", { replace: true });

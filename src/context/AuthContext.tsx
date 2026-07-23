@@ -19,7 +19,7 @@ interface AuthContextValue {
     ffIgn: string,
     ffUid: string,
     phoneNumber: string
-  ) => Promise<{ error: string | null }>;
+  ) => Promise<{ error: string | null; needsEmailConfirmation: boolean }>;
   signIn: (
     email: string,
     password: string
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ffUid: string,
     phoneNumber: string
   ) {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -80,7 +80,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       },
     });
-    return { error: error?.message ?? null };
+    // No session means Supabase is requiring email confirmation before
+    // the account can log in — the caller needs this to know whether to
+    // navigate away immediately or show a "check your email" message.
+    return { error: error?.message ?? null, needsEmailConfirmation: !data.session };
   }
 
   async function signIn(email: string, password: string) {

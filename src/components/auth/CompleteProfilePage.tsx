@@ -25,7 +25,9 @@ export default function CompleteProfilePage() {
       if (profile) {
         setFfIgn(profile.ffIgn ?? "");
         setFfUid(profile.ffUid ?? "");
-        setPhoneNumber(profile.phoneNumber ?? "");
+        // Phone-OTP signups already have this on the auth user itself —
+        // no reason to make them retype what they just verified.
+        setPhoneNumber(profile.phoneNumber ?? user.phone ?? "");
       }
       setLoading(false);
     });
