@@ -4,9 +4,15 @@ import { ArrowLeft, User, Wallet, BarChart3, Trophy, Bell, Headphones, HelpCircl
 import { useAuth } from "../../context/AuthContext";
 import { fetchProfile, fetchProfileStats, updateProfile } from "../../lib/profile";
 import { fetchRules } from "../../lib/rules";
+import { enablePushNotifications, disablePushNotifications, isPushSupported } from "../../lib/push";
 import type { Profile, ProfileStats } from "../../types/profile";
 import MenuListItem from "./MenuListItem";
 import RulesBanner from "../dashboard/RulesBanner";
+
+// Enabled by default for every player — this flag drives the actual push
+// subscription now (see the auto-enable effect below), not just a DB
+// column nobody reads.
+const AUTO_PROMPT_SESSION_KEY = "arena_push_auto_prompted";
 
 export default function MenuPage() {
   const { user, signOut } = useAuth();
@@ -25,16 +31,46 @@ export default function MenuPage() {
     });
   }, [user]);
 
-  async function handleToggleImportantNotice(next: boolean) {
+  // Notifications default to on for every player. If the preference is
+  // on but this browser was never actually subscribed (or Notification
+  // permission is still the unset "default" state), try once per
+  // session — this is what makes "enabled for every player" real
+  // instead of just a database flag nobody acts on. Skipped entirely if
+  // the player has explicitly denied permission, so it never nags.
+  useEffect(() => {
+    if (!user || !profile?.importantNoticeEnabled) return;
+    if (!isPushSupported()) return;
+    if (Notification.permission === "denied") return;
+    if (sessionStorage.getItem(AUTO_PROMPT_SESSION_KEY)) return;
+
+    sessionStorage.setItem(AUTO_PROMPT_SESSION_KEY, "1");
+    enablePushNotifications(user.id);
+  }, [user, profile?.importantNoticeEnabled]);
+
+  async function handleToggleNotifications(next: boolean) {
     if (!user) return;
-    // Optimistic — flip immediately, roll back only if the save fails
+    const prevChecked = profile?.importantNoticeEnabled ?? false;
+    // Optimistic — flip immediately, roll back only if something fails
     setProfile((prev) => (prev ? { ...prev, importantNoticeEnabled: next } : prev));
-    const { error } = await updateProfile(user.id, {
+
+    if (next) {
+      const { error } = await enablePushNotifications(user.id);
+      if (error) {
+        setProfile((prev) =>
+          prev ? { ...prev, importantNoticeEnabled: prevChecked } : prev
+        );
+        return;
+      }
+    } else {
+      await disablePushNotifications();
+    }
+
+    const { error: saveError } = await updateProfile(user.id, {
       importantNoticeEnabled: next,
     });
-    if (error) {
+    if (saveError) {
       setProfile((prev) =>
-        prev ? { ...prev, importantNoticeEnabled: !next } : prev
+        prev ? { ...prev, importantNoticeEnabled: prevChecked } : prev
       );
     }
   }
@@ -118,16 +154,16 @@ export default function MenuPage() {
         <MenuListItem icon={Wallet} label="My Wallet" onClick={() => navigate("/wallet")} />
         <MenuListItem icon={BarChart3} label="My Statistics" onClick={() => navigate("/statistics")} />
         <MenuListItem icon={Trophy} label="Top Players" onClick={() => navigate("/top-players")} />
-        <MenuListItem icon={Bell} label="Notifications" onClick={() => navigate("/notifications")} />
-        <MenuListItem icon={Headphones} label="Contact Us" onClick={() => navigate("/contact")} />
         <MenuListItem
           icon={Bell}
-          label="Importance Notice"
+          label="Notifications"
+          onClick={() => navigate("/notifications")}
           toggle={{
             checked: profile?.importantNoticeEnabled ?? false,
-            onChange: handleToggleImportantNotice,
+            onChange: handleToggleNotifications,
           }}
         />
+        <MenuListItem icon={Headphones} label="Contact Us" onClick={() => navigate("/contact")} />
         <MenuListItem icon={HelpCircle} label="FAQ" onClick={() => navigate("/faq")} />
         <MenuListItem icon={Languages} label="Language" onClick={() => navigate("/language")} />
         <MenuListItem icon={Lock} label="Privacy Policy" onClick={() => navigate("/privacy")} />

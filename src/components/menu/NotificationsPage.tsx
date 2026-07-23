@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, CheckCircle2, Wallet, Trophy, ArrowDownToLine, Megaphone, BellRing, Loader2 } from "lucide-react";
+import { Bell, CheckCircle2, Wallet, Trophy, ArrowDownToLine, Megaphone } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -8,7 +8,6 @@ import {
   type AppNotification,
   type NotificationType,
 } from "../../lib/notifications";
-import { enablePushNotifications, isPushSupported } from "../../lib/push";
 import SubPageShell from "./SubPageShell";
 
 const TYPE_ICON: Record<NotificationType, LucideIcon> = {
@@ -42,11 +41,6 @@ export default function NotificationsPage() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pushStatus, setPushStatus] = useState<
-    "unsupported" | "prompt" | "granted" | "denied"
-  >("prompt");
-  const [pushError, setPushError] = useState<string | null>(null);
-  const [pushEnabling, setPushEnabling] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,59 +50,10 @@ export default function NotificationsPage() {
       setLoading(false);
     });
     markAllNotificationsRead(user.id);
-
-    if (!isPushSupported()) {
-      setPushStatus("unsupported");
-    } else {
-      setPushStatus(Notification.permission === "denied" ? "denied" : Notification.permission === "granted" ? "granted" : "prompt");
-    }
   }, [user]);
-
-  async function handleEnablePush() {
-    if (!user) return;
-    setPushError(null);
-    setPushEnabling(true);
-    const { error } = await enablePushNotifications(user.id);
-    setPushEnabling(false);
-
-    if (error) {
-      setPushError(error);
-      return;
-    }
-    setPushStatus("granted");
-  }
 
   return (
     <SubPageShell title="Notifications">
-      {pushStatus === "prompt" && (
-        <div className="flex items-center gap-3 bg-gradient-to-br from-ember/10 via-surface to-surface border border-ember/25 rounded-lg px-4 py-3.5 mb-4">
-          <span className="shrink-0 w-9 h-9 rounded-full bg-ember/15 flex items-center justify-center">
-            <BellRing size={16} className="text-ember" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium">Get notified instantly</p>
-            <p className="text-xs text-muted">
-              Turn on push notifications for match updates and admin
-              announcements.
-            </p>
-          </div>
-          <button
-            onClick={handleEnablePush}
-            disabled={pushEnabling}
-            className="shrink-0 flex items-center gap-1.5 bg-ember text-base font-semibold text-xs px-3.5 py-2 rounded-full transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
-          >
-            {pushEnabling && <Loader2 size={12} className="animate-spin" />}
-            {pushEnabling ? "Enabling..." : "Enable"}
-          </button>
-        </div>
-      )}
-
-      {pushError && (
-        <p className="text-xs text-ember bg-ember/10 border border-ember/30 rounded px-3 py-2 mb-4">
-          {pushError}
-        </p>
-      )}
-
       {loading && (
         <p className="text-center text-muted text-sm py-10">Loading...</p>
       )}

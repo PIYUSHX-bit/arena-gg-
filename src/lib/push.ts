@@ -72,3 +72,30 @@ export async function enablePushNotifications(
     };
   }
 }
+
+// Unsubscribes this browser's active push subscription (if any) and
+// removes its row so the send-push Edge Function stops targeting it.
+export async function disablePushNotifications(): Promise<{
+  error: string | null;
+}> {
+  if (!isPushSupported()) {
+    return { error: null };
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const subscription = await registration?.pushManager.getSubscription();
+
+    if (subscription) {
+      const endpoint = subscription.endpoint;
+      await subscription.unsubscribe();
+      await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
+    }
+
+    return { error: null };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Could not disable push notifications.",
+    };
+  }
+}
