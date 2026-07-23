@@ -6,6 +6,7 @@ interface WalletTransactionRow {
   amount: number;
   type: WalletTransaction["type"];
   description: string;
+  reference: string | null;
   created_at: string;
 }
 
@@ -31,7 +32,7 @@ export async function fetchWalletTransactions(
 ): Promise<{ transactions: WalletTransaction[]; error: string | null }> {
   const { data, error } = await supabase
     .from("wallet_transactions")
-    .select("id, amount, type, description, created_at")
+    .select("id, amount, type, description, reference, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -45,6 +46,7 @@ export async function fetchWalletTransactions(
     amount: row.amount,
     type: row.type,
     description: row.description,
+    reference: row.reference,
     createdAt: row.created_at,
   }));
 

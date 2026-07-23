@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Gift, X } from "lucide-react";
+import { ArrowLeft, Gift, X, ChevronRight } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { fetchWalletBalance } from "../../lib/wallet";
 import {
@@ -118,6 +118,12 @@ export default function GiftCardsPage() {
         )}
 
         {!loading && stock.length > 0 && (
+          <p className="text-xs tracking-wider text-muted uppercase mb-2.5">
+            Choose a Denomination
+          </p>
+        )}
+
+        {!loading && stock.length > 0 && (
           <div className="flex flex-col gap-2.5 mb-8">
             {stock.map((s) => {
               const affordable = balance >= s.denomination;
@@ -130,30 +136,45 @@ export default function GiftCardsPage() {
                   <button
                     onClick={() => setConfirmingDenom(s.denomination)}
                     disabled={disabled}
-                    className={`w-full flex items-center justify-between border rounded-lg px-4 py-3.5 transition-colors ${
+                    className={`w-full flex items-center gap-3 border rounded-lg px-4 py-3.5 transition-colors ${
                       disabled
                         ? "border-line bg-surface opacity-50 cursor-not-allowed"
                         : "border-line bg-surface hover:border-zone"
                     }`}
                   >
-                    <span className="font-mono font-semibold text-sm">
-                      {formatRupees(s.denomination)}
-                    </span>
                     <span
-                      className={`text-xs ${
-                        !inStock
-                          ? "text-ember"
-                          : !affordable
-                            ? "text-muted"
-                            : "text-safe"
+                      className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                        disabled ? "bg-surface-2" : "bg-zone/15"
                       }`}
                     >
-                      {!inStock
-                        ? "Out of stock"
-                        : !affordable
-                          ? `${s.availableCount} available · need ${formatRupees(s.denomination)}`
-                          : `${s.availableCount} available`}
+                      <Gift
+                        size={18}
+                        className={disabled ? "text-muted" : "text-zone"}
+                      />
                     </span>
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="font-mono font-semibold text-sm">
+                        {formatRupees(s.denomination)}
+                      </div>
+                      <div
+                        className={`text-xs mt-0.5 ${
+                          !inStock
+                            ? "text-ember"
+                            : !affordable
+                              ? "text-muted"
+                              : "text-safe"
+                        }`}
+                      >
+                        {!inStock
+                          ? "Out of stock"
+                          : !affordable
+                            ? `${s.availableCount} available · need ${formatRupees(s.denomination)}`
+                            : `${s.availableCount} available`}
+                      </div>
+                    </div>
+                    {!disabled && (
+                      <ChevronRight size={18} className="text-muted shrink-0" />
+                    )}
                   </button>
 
                   {isConfirming && (
@@ -190,7 +211,16 @@ export default function GiftCardsPage() {
           </div>
         )}
 
-        <div className="text-sm font-medium mb-3">My Gift Cards</div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs tracking-wider text-muted uppercase">
+            My Gift Cards
+          </span>
+          {history.length > 0 && (
+            <span className="text-[10px] font-semibold text-ink bg-surface-2 border border-line rounded-full px-1.5 py-0.5">
+              {history.length}
+            </span>
+          )}
+        </div>
 
         {!loading && history.length === 0 && (
           <p className="text-center text-muted text-sm py-10">

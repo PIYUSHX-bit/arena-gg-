@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Wallet as WalletIcon, Plus, ArrowDownToLine, Gift } from "lucide-react";
+import {
+  ArrowLeft,
+  Wallet as WalletIcon,
+  Plus,
+  ArrowDownToLine,
+  Gift,
+  Swords,
+  Trophy,
+  RotateCcw,
+  Settings2,
+  UserPlus,
+  ChevronDown,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {
   fetchWalletBalance,
@@ -28,6 +41,17 @@ function formatDate(iso: string): string {
   });
 }
 
+function formatFullDate(iso: string): string {
+  return new Date(iso).toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 const TYPE_LABEL: Record<WalletTransaction["type"], string> = {
   deposit: "Added money",
   tournament_entry: "Tournament entry",
@@ -35,6 +59,30 @@ const TYPE_LABEL: Record<WalletTransaction["type"], string> = {
   withdrawal: "Withdrawal",
   refund: "Refund",
   adjustment: "Adjustment",
+  referral_bonus: "Referral bonus",
+  gift_card_redemption: "Gift card redeemed",
+};
+
+const TYPE_ICON: Record<WalletTransaction["type"], LucideIcon> = {
+  deposit: Plus,
+  tournament_entry: Swords,
+  prize_payout: Trophy,
+  withdrawal: ArrowDownToLine,
+  refund: RotateCcw,
+  adjustment: Settings2,
+  referral_bonus: UserPlus,
+  gift_card_redemption: Gift,
+};
+
+const TYPE_COLOR: Record<WalletTransaction["type"], string> = {
+  deposit: "text-safe bg-safe/15",
+  tournament_entry: "text-zone bg-zone/15",
+  prize_payout: "text-amber bg-amber/15",
+  withdrawal: "text-ember bg-ember/15",
+  refund: "text-zone bg-zone/15",
+  adjustment: "text-muted bg-surface-2",
+  referral_bonus: "text-zone bg-zone/15",
+  gift_card_redemption: "text-zone bg-zone/15",
 };
 
 export default function WalletPage() {
@@ -56,6 +104,8 @@ export default function WalletPage() {
   const [withdrawProcessing, setWithdrawProcessing] = useState(false);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [withdrawSuccess, setWithdrawSuccess] = useState(false);
+
+  const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
 
   async function loadWallet() {
     if (!user) return;
@@ -353,26 +403,71 @@ export default function WalletPage() {
 
         {!loading && transactions.length > 0 && (
           <div className="flex flex-col gap-2">
-            {transactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="flex items-center justify-between bg-surface border border-line rounded-lg px-4 py-3.5"
-              >
-                <div>
-                  <div className="text-sm font-medium">
-                    {TYPE_LABEL[tx.type]}
-                  </div>
-                  <div className="text-xs text-muted mt-0.5">
-                    {tx.description} · {formatDate(tx.createdAt)}
-                  </div>
-                </div>
-                <span
-                  className={`font-mono text-sm shrink-0 ${tx.amount >= 0 ? "text-safe" : "text-ember"}`}
+            {transactions.map((tx) => {
+              const Icon = TYPE_ICON[tx.type];
+              const expanded = expandedTxId === tx.id;
+              return (
+                <div
+                  key={tx.id}
+                  className="bg-surface border border-line rounded-lg overflow-hidden"
                 >
-                  {formatRupees(tx.amount)}
-                </span>
-              </div>
-            ))}
+                  <button
+                    onClick={() =>
+                      setExpandedTxId(expanded ? null : tx.id)
+                    }
+                    className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
+                  >
+                    <span
+                      className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${TYPE_COLOR[tx.type]}`}
+                    >
+                      <Icon size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium">
+                        {TYPE_LABEL[tx.type]}
+                      </div>
+                      <div className="text-xs text-muted mt-0.5 truncate">
+                        {tx.description} · {formatDate(tx.createdAt)}
+                      </div>
+                    </div>
+                    <span
+                      className={`font-mono text-sm shrink-0 ${tx.amount >= 0 ? "text-safe" : "text-ember"}`}
+                    >
+                      {formatRupees(tx.amount)}
+                    </span>
+                    <ChevronDown
+                      size={15}
+                      className={`text-muted shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {expanded && (
+                    <div className="px-4 pb-3.5 pl-[3.75rem] flex flex-col gap-1 text-xs text-muted border-t border-line pt-3">
+                      <div className="flex justify-between gap-3">
+                        <span>Date &amp; time</span>
+                        <span className="text-ink font-mono">
+                          {formatFullDate(tx.createdAt)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span>Transaction ID</span>
+                        <span className="text-ink font-mono truncate max-w-[180px]">
+                          {tx.id}
+                        </span>
+                      </div>
+                      {tx.reference && (
+                        <div className="flex justify-between gap-3">
+                          <span>Reference</span>
+                          <span className="text-ink font-mono truncate max-w-[180px]">
+                            {tx.reference}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
