@@ -55,20 +55,20 @@ export default function TopBar() {
       <div className="flex items-center gap-3">
         <Link
           to="/wallet"
-          className="flex items-center gap-1.5 bg-surface-2 border border-line rounded-full pl-1 pr-3 py-1"
+          className="flex items-center gap-1.5 bg-surface-2 border border-line rounded-full pl-1 pr-3 py-1 transition-colors hover:border-amber/50"
         >
           <span className="w-6 h-6 rounded-full bg-amber flex items-center justify-center text-base leading-none">
             ₹
           </span>
           <span className="font-mono text-sm text-amber">
-            {walletBalance ?? "—"}
+            {walletBalance === null ? "—" : walletBalance.toLocaleString("en-IN")}
           </span>
         </Link>
 
         <button
           onClick={() => navigate("/notifications")}
           aria-label="Notifications"
-          className="relative w-10 h-10 rounded-full bg-surface-2 border border-line flex items-center justify-center"
+          className="relative w-10 h-10 rounded-full bg-surface-2 border border-line flex items-center justify-center transition-colors hover:border-muted active:scale-95"
         >
           <Bell size={18} className="text-ink" />
           {notificationCount > 0 && (

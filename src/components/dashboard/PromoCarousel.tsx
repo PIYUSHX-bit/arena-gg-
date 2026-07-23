@@ -69,11 +69,11 @@ export default function PromoCarousel({ slides }: PromoCarouselProps) {
           const accent = ACCENT_CLASSES[slide.accent ?? "zone"];
 
           return (
-            <div key={slide.id} className="w-full shrink-0 snap-start px-4">
+            <div key={slide.id} className="w-full shrink-0 snap-start px-5">
               <div
                 onClick={slide.onCtaClick}
-                className={`relative rounded-xl overflow-hidden border border-line bg-gradient-to-br from-surface-2 via-surface to-base p-6 min-h-[180px] flex flex-col justify-between ${
-                  slide.onCtaClick ? "cursor-pointer" : ""
+                className={`relative rounded-xl overflow-hidden border border-line bg-gradient-to-br from-surface-2 via-surface to-base p-6 min-h-[180px] flex flex-col justify-between shadow-lg shadow-black/20 transition-transform duration-150 ${
+                  slide.onCtaClick ? "cursor-pointer active:scale-[0.98]" : ""
                 }`}
               >
                 {/* faint zone rings, reused from the hero — keeps promo cards on-brand */}

@@ -30,7 +30,7 @@ interface MyMatchesProps {
 
 export default function MyMatches({ onSelect }: MyMatchesProps) {
   return (
-    <section className="px-4 pt-7">
+    <section className="px-5 pt-7">
       <h2 className="font-display font-semibold text-xl mb-3.5">
         My Matches
       </h2>
@@ -41,7 +41,7 @@ export default function MyMatches({ onSelect }: MyMatchesProps) {
             <button
               key={status}
               onClick={() => onSelect(status)}
-              className="bg-surface border border-line rounded-xl py-5 flex flex-col items-center gap-2.5 transition-colors hover:border-muted"
+              className="bg-surface border border-line rounded-xl py-5 flex flex-col items-center gap-2.5 transition-all hover:border-muted active:scale-[0.97]"
             >
               <span
                 className={`w-11 h-11 rounded-lg flex items-center justify-center ${ICON_COLORS[status]}`}

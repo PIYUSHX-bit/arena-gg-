@@ -7,7 +7,7 @@ interface EsportsGamesProps {
 
 export default function EsportsGames({ modes, onSelect }: EsportsGamesProps) {
   return (
-    <section className="px-4 pt-8 pb-8">
+    <section className="px-5 pt-8 pb-8">
       <h2 className="font-display font-semibold text-xl mb-3.5">
         FREE FIRE 🔥
       </h2>

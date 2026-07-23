@@ -16,14 +16,14 @@ const TABS: { id: NavTab; label: string; icon: typeof Home }[] = [
 
 export default function BottomNav({ active, onChange }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 flex bg-surface border-t border-line px-2 py-2">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 z-40 flex w-full max-w-[480px] bg-surface border-t border-line px-2 pt-2 shadow-[0_-8px_24px_rgba(0,0,0,0.35)] [padding-bottom:max(0.5rem,env(safe-area-inset-bottom))]">
       {TABS.map(({ id, label, icon: Icon }) => {
         const isActive = id === active;
         return (
           <button
             key={id}
             onClick={() => onChange(id)}
-            className="flex-1 flex flex-col items-center gap-1 py-1.5"
+            className="flex-1 flex flex-col items-center gap-1 py-1.5 transition-transform active:scale-95"
           >
             <Icon
               size={20}
