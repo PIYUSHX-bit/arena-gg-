@@ -21,11 +21,17 @@ export default function MenuListItem({
     </div>
   );
 
+  // A single element acting as both the button and its own track — no
+  // wrapping button-around-a-span indirection, which is what let the
+  // knob render detached from its track in a combined nav+toggle row.
   const switchEl = toggle && (
-    <span
+    <button
+      type="button"
       role="switch"
       aria-checked={toggle.checked}
-      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+      aria-label={`${label}: turn ${toggle.checked ? "off" : "on"}`}
+      onClick={() => toggle.onChange(!toggle.checked)}
+      className={`relative inline-block shrink-0 w-11 h-6 rounded-full transition-colors ${
         toggle.checked ? "bg-ember" : "bg-surface-2 border border-line"
       }`}
     >
@@ -34,13 +40,12 @@ export default function MenuListItem({
           toggle.checked ? "translate-x-[22px]" : "translate-x-0.5"
         }`}
       />
-    </span>
+    </button>
   );
 
   // Both a nav action and a toggle at once (e.g. "Notifications": tap
   // the row to view history, flip the switch to enable/disable push)
-  // need independent click targets — nesting the toggle inside a single
-  // onClick button would fire both handlers on every tap.
+  // need independent click targets.
   if (onClick && toggle) {
     return (
       <div className="w-full flex items-center justify-between bg-surface border border-line rounded-lg pl-4 pr-3 py-4 transition-colors hover:border-muted">
@@ -50,24 +55,29 @@ export default function MenuListItem({
         >
           {labelContent}
         </button>
-        <button
-          onClick={() => toggle.onChange(!toggle.checked)}
-          aria-label={`${label}: turn ${toggle.checked ? "off" : "on"}`}
-          className="shrink-0 pl-3 py-1"
-        >
-          {switchEl}
-        </button>
+        {switchEl}
+      </div>
+    );
+  }
+
+  // Toggle-only, no nav action — switchEl is itself a <button>, so the
+  // row is a div (a <button> can't contain another <button>).
+  if (toggle) {
+    return (
+      <div className="w-full flex items-center justify-between bg-surface border border-line rounded-lg px-4 py-4">
+        {labelContent}
+        {switchEl}
       </div>
     );
   }
 
   return (
     <button
-      onClick={toggle ? () => toggle.onChange(!toggle.checked) : onClick}
+      onClick={onClick}
       className="w-full flex items-center justify-between bg-surface border border-line rounded-lg px-4 py-4 text-left transition-colors hover:border-muted"
     >
       {labelContent}
-      {toggle ? switchEl : <ChevronRight size={18} className="text-muted shrink-0" />}
+      <ChevronRight size={18} className="text-muted shrink-0" />
     </button>
   );
 }
