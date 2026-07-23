@@ -14,9 +14,17 @@ export default function MenuListItem({
   onClick,
   toggle,
 }: MenuListItemProps) {
+  // When there's a toggle, the icon itself doubles as a state indicator —
+  // red/ember while on, muted while off — instead of always being ember
+  // regardless of whether the setting is actually enabled.
+  const iconActive = toggle ? toggle.checked : true;
+
   const labelContent = (
     <div className="flex items-center gap-3.5">
-      <Icon size={19} className="text-ember shrink-0" />
+      <Icon
+        size={19}
+        className={`shrink-0 transition-colors ${iconActive ? "text-ember" : "text-muted"}`}
+      />
       <span className="text-[15px]">{label}</span>
     </div>
   );
@@ -32,7 +40,9 @@ export default function MenuListItem({
       aria-label={`${label}: turn ${toggle.checked ? "off" : "on"}`}
       onClick={() => toggle.onChange(!toggle.checked)}
       className={`relative inline-block shrink-0 w-11 h-6 rounded-full transition-colors ${
-        toggle.checked ? "bg-ember" : "bg-surface-2 border border-line"
+        toggle.checked
+          ? "bg-ember shadow-[0_0_8px_rgba(255,74,28,0.55)]"
+          : "bg-surface-2 border border-line"
       }`}
     >
       <span

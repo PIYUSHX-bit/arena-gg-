@@ -4,15 +4,10 @@ import { ArrowLeft, User, Wallet, BarChart3, Trophy, Bell, Headphones, HelpCircl
 import { useAuth } from "../../context/AuthContext";
 import { fetchProfile, fetchProfileStats, updateProfile } from "../../lib/profile";
 import { fetchRules } from "../../lib/rules";
-import { enablePushNotifications, disablePushNotifications, isPushSupported } from "../../lib/push";
+import { enablePushNotifications, disablePushNotifications } from "../../lib/push";
 import type { Profile, ProfileStats } from "../../types/profile";
 import MenuListItem from "./MenuListItem";
 import RulesBanner from "../dashboard/RulesBanner";
-
-// Enabled by default for every player — this flag drives the actual push
-// subscription now (see the auto-enable effect below), not just a DB
-// column nobody reads.
-const AUTO_PROMPT_SESSION_KEY = "arena_push_auto_prompted";
 
 export default function MenuPage() {
   const { user, signOut } = useAuth();
@@ -31,22 +26,12 @@ export default function MenuPage() {
     });
   }, [user]);
 
-  // Notifications default to on for every player. If the preference is
-  // on but this browser was never actually subscribed (or Notification
-  // permission is still the unset "default" state), try once per
-  // session — this is what makes "enabled for every player" real
-  // instead of just a database flag nobody acts on. Skipped entirely if
-  // the player has explicitly denied permission, so it never nags.
-  useEffect(() => {
-    if (!user || !profile?.importantNoticeEnabled) return;
-    if (!isPushSupported()) return;
-    if (Notification.permission === "denied") return;
-    if (sessionStorage.getItem(AUTO_PROMPT_SESSION_KEY)) return;
-
-    sessionStorage.setItem(AUTO_PROMPT_SESSION_KEY, "1");
-    enablePushNotifications(user.id);
-  }, [user, profile?.importantNoticeEnabled]);
-
+  // Notifications default to on in the database for every player, but
+  // the actual browser permission prompt only ever fires from this
+  // explicit click — browsers throttle/ignore Notification.requestPermission()
+  // calls not tied to a user gesture, and auto-firing it on page mount
+  // was exactly what made the switch seem unresponsive (a pending
+  // un-gestured permission prompt can interfere with page interaction).
   async function handleToggleNotifications(next: boolean) {
     if (!user) return;
     const prevChecked = profile?.importantNoticeEnabled ?? false;
