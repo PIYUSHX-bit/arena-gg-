@@ -22,8 +22,11 @@ import {
   verifyWalletTopup,
   requestWithdrawal,
 } from "../../lib/wallet";
+import { fetchProfile } from "../../lib/profile";
 import { openRazorpayCheckout } from "../../lib/razorpay";
 import type { WalletTransaction } from "../../types/wallet";
+import type { Profile } from "../../types/profile";
+import CopyIconButton from "../common/CopyIconButton";
 
 const QUICK_AMOUNTS = [50, 100, 200, 500];
 
@@ -92,6 +95,7 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   const [addingMoney, setAddingMoney] = useState(false);
   const [customAmount, setCustomAmount] = useState("");
@@ -120,6 +124,7 @@ export default function WalletPage() {
 
   useEffect(() => {
     loadWallet();
+    if (user) fetchProfile(user.id).then(({ profile: p }) => setProfile(p));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -273,6 +278,34 @@ export default function WalletPage() {
             </div>
           </div>
         </button>
+
+        {profile?.referralCode && (
+          <div className="bg-gradient-to-br from-zone/15 via-surface to-surface border border-zone/30 rounded-lg p-5 mb-6">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Gift size={16} className="text-zone" />
+              <h2 className="font-display font-semibold text-base">
+                Invite a Friend
+              </h2>
+            </div>
+            <p className="text-xs text-muted mb-4">
+              Share your code — you both get ₹5 when they join.
+            </p>
+            <div className="flex items-center justify-between bg-surface-2 border border-line rounded px-4 py-3">
+              <span className="font-mono text-lg tracking-widest text-amber">
+                {profile.referralCode}
+              </span>
+              <CopyIconButton value={profile.referralCode} />
+            </div>
+            {!profile.referredBy && (
+              <button
+                onClick={() => navigate("/redeem-code")}
+                className="text-xs text-zone font-medium mt-3"
+              >
+                Have a friend's code? Redeem it →
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Add money panel */}
         {addingMoney && (

@@ -46,20 +46,20 @@ export default function RedeemCodePage() {
             Code redeemed!
           </p>
           <p className="text-muted text-sm mb-6">
-            ₹10 has landed in your wallet.
+            ₹5 has landed in your wallet.
           </p>
           <button
-            onClick={() => navigate("/profile", { replace: true })}
+            onClick={() => navigate("/wallet", { replace: true })}
             className="bg-ember text-base font-semibold text-sm px-5 py-2.5 rounded-full transition-transform hover:-translate-y-0.5"
           >
-            Back to Profile
+            Back to Wallet
           </button>
         </div>
       ) : (
         <>
           <p className="text-muted text-sm mb-6">
             Enter the referral code a friend shared with you — you'll both
-            get ₹10. This is completely optional.
+            get ₹5. This is completely optional.
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
