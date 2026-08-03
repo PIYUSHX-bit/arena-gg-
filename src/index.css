@@ -12,6 +12,53 @@ body {
   @apply bg-base text-ink font-body;
 }
 
+/* Baseline smooth interaction feedback for every clickable element,
+   applied globally so individual components don't each need it. */
+button,
+a,
+[role="button"],
+input[type="submit"],
+input[type="button"] {
+  /* !important: many components already set their own `transition-colors`
+     etc. via Tailwind utility classes, which — being class selectors —
+     win specificity over this tag selector and would otherwise drop
+     `transform`/`filter` from the animated properties. */
+  transition: transform 0.15s ease, opacity 0.15s ease, filter 0.15s ease,
+    color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease !important;
+}
+
+button:not(:disabled):active,
+a:active,
+[role="button"]:active,
+input[type="submit"]:active,
+input[type="button"]:active {
+  transform: scale(0.96);
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  transition: none;
+}
+
+@media (hover: hover) {
+  button:not(:disabled):hover,
+  a:hover,
+  [role="button"]:hover {
+    filter: brightness(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  a,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 /* Faint grid texture, masked to fade at the edges — used behind the hero */
 .grid-bg {
   position: absolute;

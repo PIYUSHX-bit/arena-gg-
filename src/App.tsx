@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import ClickSoundProvider from "./components/common/ClickSoundProvider";
 import AuthPage from "./components/auth/AuthPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ProfileCompletionGuard from "./components/auth/ProfileCompletionGuard";
@@ -33,6 +34,7 @@ function protect(element: React.ReactNode) {
 export default function App() {
   return (
     <AuthProvider>
+      <ClickSoundProvider />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
