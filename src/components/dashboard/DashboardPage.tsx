@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import TopBar from "./TopBar";
 import RulesBanner from "./RulesBanner";
 import PromoCarousel from "./PromoCarousel";
@@ -10,6 +10,7 @@ import BottomNav, { type NavTab } from "./BottomNav";
 import type { MatchStatus } from "../../types/dashboard";
 import { GAME_MODES } from "../../lib/gameModes";
 import { fetchAnnouncement } from "../../lib/announcement";
+import { IconBadge, WhatsAppIcon } from "../common/BrandIcons";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<NavTab>("home");
@@ -68,7 +69,16 @@ export default function DashboardPage() {
             title: "Chat With Us",
             subtitle: "Message us on WhatsApp for the quickest response.",
             ctaLabel: "Message on WhatsApp",
-            icon: MessageCircle,
+            brandIcon: (
+              <IconBadge
+                gradientFrom="#3FDC74"
+                gradientTo="#20B354"
+                shadowColor="rgba(37,211,102,0.55)"
+                size={40}
+              >
+                <WhatsAppIcon size={19} />
+              </IconBadge>
+            ),
             accent: "safe",
             onCtaClick: () =>
               window.open(

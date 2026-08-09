@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Send, type LucideIcon } from "lucide-react";
 
 interface PromoSlide {
@@ -9,6 +9,9 @@ interface PromoSlide {
   ctaLabel: string;
   onCtaClick?: () => void;
   icon?: LucideIcon;
+  // A fully custom badge (e.g. a brand logo in its own colored tile) that
+  // replaces the default lucide-icon-in-a-tinted-circle rendering below.
+  brandIcon?: ReactNode;
   accent?: "zone" | "safe";
 }
 
@@ -102,11 +105,13 @@ export default function PromoCarousel({ slides }: PromoCarouselProps) {
                   >
                     {slide.ctaLabel}
                   </span>
-                  <span
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${accent.iconWrap}`}
-                  >
-                    <Icon size={16} className={accent.icon} />
-                  </span>
+                  {slide.brandIcon ?? (
+                    <span
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${accent.iconWrap}`}
+                    >
+                      <Icon size={16} className={accent.icon} />
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
