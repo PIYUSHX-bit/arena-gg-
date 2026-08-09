@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { Clock, ChevronRight, Lightbulb } from "lucide-react";
+import { Clock, ChevronRight, Lightbulb, Headset } from "lucide-react";
 import SubPageShell from "./SubPageShell";
 
 const TELEGRAM_URL = "https://t.me/NIKHILY9";
@@ -121,10 +121,10 @@ export default function ContactPage() {
           href={PERSONAL_WHATSAPP_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 bg-surface border border-line rounded-lg px-4 py-4 transition-colors hover:border-[#25D366]/50"
+          className="flex items-center gap-3 bg-surface border border-line rounded-lg px-4 py-4 transition-colors hover:border-amber/50"
         >
-          <span className="shrink-0 w-10 h-10 rounded-full overflow-hidden shadow-[0_4px_14px_-4px_rgba(37,211,102,0.55)]">
-            <WhatsAppIcon className="w-full h-full" />
+          <span className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-b from-amber/30 to-amber/10 shadow-[0_4px_14px_-4px_rgba(255,176,32,0.5)] flex items-center justify-center">
+            <Headset size={18} className="text-amber" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium">Personal Issue</div>
