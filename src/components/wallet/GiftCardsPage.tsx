@@ -69,6 +69,9 @@ export default function GiftCardsPage() {
 
     if (redeemError || !code) {
       setError(redeemError ?? "Redemption failed.");
+      // Refresh too — a failure like "out of stock" or a changed balance
+      // means what's on screen is already stale, not just this attempt.
+      loadAll();
       return;
     }
 

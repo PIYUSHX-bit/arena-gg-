@@ -37,8 +37,8 @@ export default function AdminGiftCardsTab() {
     setAdded(false);
 
     const denom = Number(denomination);
-    if (!denom || denom <= 0) {
-      setError("Enter a valid denomination.");
+    if (!Number.isInteger(denom) || denom <= 0) {
+      setError("Enter a valid whole-rupee denomination.");
       return;
     }
     if (!code.trim()) {

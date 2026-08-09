@@ -350,7 +350,11 @@ export async function addGiftCardCode(
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from("gift_card_codes")
-    .insert({ denomination, code, status: "available" });
+    .insert({ denomination, code: code.trim(), status: "available" });
+
+  if (error?.code === "23505") {
+    return { error: "This code has already been added to stock." };
+  }
 
   return { error: error?.message ?? null };
 }
