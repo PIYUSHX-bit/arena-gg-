@@ -49,8 +49,10 @@ export default function NotificationsPage() {
       setNotifications(n);
       setLoading(false);
     });
-    markAllNotificationsRead(user.id).then(() => {
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    markAllNotificationsRead(user.id).then(({ error }) => {
+      if (!error) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      }
     });
   }, [user]);
 

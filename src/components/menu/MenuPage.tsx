@@ -47,7 +47,13 @@ export default function MenuPage() {
         return;
       }
     } else {
-      await disablePushNotifications();
+      const { error } = await disablePushNotifications();
+      if (error) {
+        setProfile((prev) =>
+          prev ? { ...prev, importantNoticeEnabled: prevChecked } : prev
+        );
+        return;
+      }
     }
 
     const { error: saveError } = await updateProfile(user.id, {

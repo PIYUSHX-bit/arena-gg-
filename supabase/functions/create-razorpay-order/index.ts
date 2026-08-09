@@ -6,6 +6,10 @@
 //   RAZORPAY_KEY_SECRET
 //   SUPABASE_URL              (auto-provided by Supabase)
 //   SUPABASE_SERVICE_ROLE_KEY (set manually — needed to read entries bypassing RLS)
+//
+// Verifies the caller's identity from their JWT and checks they own the
+// entry before creating a payable order for it — same pattern as
+// create-wallet-topup-order.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -16,11 +20,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { entryId } = await req.json();
-
-    if (!entryId) {
-      return new Response(JSON.stringify({ error: "entryId is required" }), {
-        status: 400,
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+        status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -30,17 +33,45 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Verify the JWT and get the real caller — never trust a client-sent user id.
+    const jwt = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(jwt);
+
+    if (userError || !userData.user) {
+      return new Response(JSON.stringify({ error: "Invalid or expired session" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = userData.user.id;
+    const { entryId } = await req.json();
+
+    if (!entryId) {
+      return new Response(JSON.stringify({ error: "entryId is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Look up the entry + its tournament server-side so the client can never
     // spoof the amount being charged.
     const { data: entry, error: entryError } = await supabaseAdmin
       .from("entries")
-      .select("id, status, players, tournaments(entry_fee)")
+      .select("id, user_id, status, players, tournaments(entry_fee)")
       .eq("id", entryId)
       .single();
 
     if (entryError || !entry) {
       return new Response(JSON.stringify({ error: "Entry not found" }), {
         status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (entry.user_id !== userId) {
+      return new Response(JSON.stringify({ error: "This entry does not belong to you" }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

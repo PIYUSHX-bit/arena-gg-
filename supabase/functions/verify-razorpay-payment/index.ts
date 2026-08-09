@@ -8,6 +8,16 @@
 // browser tab after paying but before this call completes.
 //
 // Requires the same secrets as create-razorpay-order.
+//
+// SECURITY: the entry to confirm is looked up by `razorpay_order_id` —
+// the value stamped on it back when create-razorpay-order made the order
+// — never by a client-supplied `entryId`. A signature only proves *some*
+// real payment happened for that specific order_id/payment_id pair; if
+// the entry were looked up by a separate client-supplied id instead, a
+// valid signature from any real (even tiny) payment could be replayed to
+// confirm an unrelated, unpaid entry for free. The caller's identity is
+// also verified from their JWT and checked against the entry's owner —
+// never trust a client-sent user id.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -33,19 +43,35 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const {
-      entryId,
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-    } = await req.json();
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    if (
-      !entryId ||
-      !razorpay_order_id ||
-      !razorpay_payment_id ||
-      !razorpay_signature
-    ) {
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Verify the JWT and get the real caller — never trust a client-sent user id.
+    const jwt = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(jwt);
+
+    if (userError || !userData.user) {
+      return new Response(JSON.stringify({ error: "Invalid or expired session" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = userData.user.id;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      await req.json();
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         {
@@ -71,21 +97,31 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    // Re-fetch amount server-side rather than trusting anything from the client
+    // Look the entry up by the order_id this exact signature was verified
+    // against — never by a client-supplied entryId — so a valid signature
+    // can only ever confirm the one entry it was actually issued for.
     const { data: entry, error: entryError } = await supabaseAdmin
       .from("entries")
-      .select("id, players, tournaments(entry_fee)")
-      .eq("id", entryId)
+      .select("id, user_id, status, players, tournaments(entry_fee)")
+      .eq("razorpay_order_id", razorpay_order_id)
       .single();
 
     if (entryError || !entry) {
-      return new Response(JSON.stringify({ error: "Entry not found" }), {
+      return new Response(JSON.stringify({ error: "Entry not found for this order" }), {
         status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (entry.user_id !== userId) {
+      return new Response(JSON.stringify({ error: "This entry does not belong to you" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (entry.status === "confirmed") {
+      return new Response(JSON.stringify({ alreadyConfirmed: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -98,7 +134,7 @@ Deno.serve(async (req: Request) => {
     const { error: updateError } = await supabaseAdmin
       .from("entries")
       .update({ status: "confirmed", amount_paid: amountPaid })
-      .eq("id", entryId);
+      .eq("id", entry.id);
 
     if (updateError) {
       return new Response(JSON.stringify({ error: updateError.message }), {
