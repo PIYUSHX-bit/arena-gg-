@@ -1,4 +1,4 @@
-import { Send, Clock, ChevronRight } from "lucide-react";
+import { Clock, ChevronRight, Lightbulb } from "lucide-react";
 import SubPageShell from "./SubPageShell";
 
 const TELEGRAM_URL = "https://t.me/NIKHILY9";
@@ -7,15 +7,35 @@ const WHATSAPP_GROUP_URL =
 const PERSONAL_WHATSAPP_URL = "https://WA.me/917697357080";
 const SUPPORT_HOURS = "10 AM – 10 PM IST, every day";
 
+// Real brand mark (paper plane in a circle), not a generic "send" glyph —
+// colored with Telegram's own blue rather than the app's theme colors so
+// it reads as the actual Telegram logo.
+function TelegramIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 240 240" className={className} aria-hidden="true">
+      <circle cx="120" cy="120" r="120" fill="#26A5E4" />
+      <path
+        fill="#fff"
+        d="M53.6 122.5c46-20 76.7-33.2 92-39.6 43.8-18.3 52.9-21.4 58.8-21.5 1.3 0 4.2.3 6.1 1.8 1.6 1.3 2 3 2.3 4.3.2 1.3.5 4.1.3 6.3-2.4 25.2-12.8 86.3-18.1 114.5-2.2 12-6.6 16-10.9 16.4-9.3.9-16.3-6.1-25.3-12-14.1-9.2-22-14.9-35.7-24-15.8-10.4-5.6-16.1 3.5-25.4 2.4-2.5 43.4-39.8 44.2-43.2.1-.4.2-2-.7-2.8-.9-.8-2.2-.5-3.2-.3-1.4.3-23 14.6-64.9 42.9-6.1 4.2-11.7 6.3-16.7 6.1-5.5-.1-16.1-3.1-24-5.6-9.6-3.1-17.3-4.8-16.6-10.1.3-2.8 4.2-5.6 11.7-8.6z"
+      />
+    </svg>
+  );
+}
+
+// Same idea for WhatsApp — the real logo (rounded speech bubble + handset),
+// filled with WhatsApp's brand green.
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12.004 2C6.477 2 2 6.477 2 12c0 1.842.505 3.564 1.379 5.037L2 22l5.096-1.339A9.936 9.936 0 0 0 12.004 22C17.526 22 22 17.523 22 12S17.526 2 12.004 2zm5.42 14.244c-.226.638-1.117 1.166-1.836 1.318-.489.104-1.128.187-3.28-.7-2.756-1.14-4.53-3.945-4.668-4.128-.137-.183-1.116-1.485-1.116-2.833s.703-2.007.953-2.28c.25-.273.545-.34.727-.34l.523.009c.166.008.39-.063.61.466.226.545.77 1.885.837 2.022.068.137.113.296.023.478-.09.183-.137.296-.272.455l-.41.478c-.137.137-.279.285-.12.557.159.273.706 1.165 1.517 1.888 1.043.93 1.923 1.218 2.194 1.354.272.137.431.114.59-.068.16-.183.68-.795.863-1.068.183-.273.364-.228.614-.137.25.09 1.592.751 1.865.888.272.137.454.205.522.318.068.114.068.66-.16 1.298z" />
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="12" fill="#25D366" />
+      <path
+        fill="#fff"
+        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.198.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.148.198 2.095 3.2 5.076 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"
+      />
+      <path
+        fill="#fff"
+        d="M12.004 2.003c-5.518 0-9.997 4.478-9.997 9.997 0 1.762.462 3.479 1.34 4.997L2 22.003l5.144-1.323a9.98 9.98 0 0 0 4.86 1.237h.004c5.518 0 9.997-4.478 9.997-9.997 0-2.67-1.04-5.18-2.928-7.068a9.93 9.93 0 0 0-7.073-2.849zm0 18.166h-.003a8.166 8.166 0 0 1-4.163-1.14l-.299-.177-3.052.785.816-2.976-.194-.305a8.15 8.15 0 0 1-1.253-4.356c0-4.507 3.667-8.174 8.174-8.174a8.12 8.12 0 0 1 5.782 2.397 8.12 8.12 0 0 1 2.393 5.783c0 4.507-3.667 8.163-8.201 8.163z"
+      />
     </svg>
   );
 }
@@ -43,8 +63,8 @@ export default function ContactPage() {
           rel="noopener noreferrer"
           className="flex items-center gap-3 bg-surface border border-line rounded-lg px-4 py-4 transition-colors hover:border-zone"
         >
-          <span className="shrink-0 w-9 h-9 rounded-full bg-zone/15 flex items-center justify-center">
-            <Send size={17} className="text-zone" />
+          <span className="shrink-0 w-9 h-9 rounded-full overflow-hidden">
+            <TelegramIcon className="w-full h-full" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium">Telegram</div>
@@ -61,8 +81,8 @@ export default function ContactPage() {
           rel="noopener noreferrer"
           className="flex items-center gap-3 bg-surface border border-line rounded-lg px-4 py-4 transition-colors hover:border-safe"
         >
-          <span className="shrink-0 w-9 h-9 rounded-full bg-safe/15 flex items-center justify-center">
-            <WhatsAppIcon className="w-[17px] h-[17px] text-safe" />
+          <span className="shrink-0 w-9 h-9 rounded-full overflow-hidden">
+            <WhatsAppIcon className="w-full h-full" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium">WhatsApp Group</div>
@@ -79,8 +99,8 @@ export default function ContactPage() {
           rel="noopener noreferrer"
           className="flex items-center gap-3 bg-surface border border-line rounded-lg px-4 py-4 transition-colors hover:border-safe"
         >
-          <span className="shrink-0 w-9 h-9 rounded-full bg-safe/15 flex items-center justify-center">
-            <WhatsAppIcon className="w-[17px] h-[17px] text-safe" />
+          <span className="shrink-0 w-9 h-9 rounded-full overflow-hidden">
+            <WhatsAppIcon className="w-full h-full" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium">Personal Issue</div>
@@ -93,10 +113,13 @@ export default function ContactPage() {
         </a>
       </div>
 
-      <p className="text-xs text-muted">
-        For payment issues, include your registered phone/email and the
-        tournament name — it speeds up lookup significantly.
-      </p>
+      <div className="flex items-start gap-2.5 bg-amber/10 border border-amber/30 rounded-lg px-4 py-3.5">
+        <Lightbulb size={16} className="text-amber shrink-0 mt-0.5" />
+        <p className="text-xs text-muted">
+          For payment issues, include your registered phone/email and the
+          tournament name — it speeds up lookup significantly.
+        </p>
+      </div>
     </SubPageShell>
   );
 }
