@@ -82,7 +82,12 @@ export default function ProfilePage() {
 
     setProfile((prev) =>
       prev
-        ? { ...prev, displayName: displayName.trim(), ffIgn, ffUid }
+        ? {
+            ...prev,
+            displayName: displayName.trim(),
+            ffIgn: ffIgn.trim(),
+            ffUid: ffUid.trim(),
+          }
         : prev
     );
     setEditing(false);

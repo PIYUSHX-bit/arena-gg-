@@ -54,6 +54,7 @@ export default function GameModeTournamentsPage() {
           return;
         }
 
+        setError(null);
         setTournaments(t);
 
         // Per-card "Joined" badge/Enter button — only true for the

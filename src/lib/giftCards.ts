@@ -46,16 +46,25 @@ export async function redeemGiftCard(
   return { code: data as string, error: null };
 }
 
-// RLS already restricts this to rows where assigned_to_user_id = auth.uid()
-// — no explicit filter needed, a regular user's policy can't see anyone
-// else's codes or the unassigned pool.
+// RLS restricts this to rows where assigned_to_user_id = auth.uid() for
+// regular users, but filter explicitly too — defense in depth in case
+// that policy is ever loosened (admins have a separate "view all" policy
+// on this table, so relying on RLS alone here is a single point of failure).
 export async function fetchMyGiftCards(): Promise<{
   cards: MyGiftCard[];
   error: string | null;
 }> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { cards: [], error: "Not signed in." };
+  }
+
   const { data, error } = await supabase
     .from("gift_card_codes")
     .select("id, denomination, code, assigned_at")
+    .eq("assigned_to_user_id", user.id)
     .order("assigned_at", { ascending: false });
 
   if (error) {

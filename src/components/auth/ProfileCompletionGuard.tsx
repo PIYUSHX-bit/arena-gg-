@@ -18,6 +18,7 @@ export default function ProfileCompletionGuard({
   const { user } = useAuth();
   const [checking, setChecking] = useState(true);
   const [incomplete, setIncomplete] = useState(false);
+  const [fetchFailed, setFetchFailed] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -26,11 +27,18 @@ export default function ProfileCompletionGuard({
     }
 
     let cancelled = false;
-    fetchProfile(user.id).then(({ profile }) => {
+    fetchProfile(user.id).then(({ profile, error }) => {
       if (cancelled) return;
-      setIncomplete(
-        !profile?.phoneNumber || !profile?.ffIgn || !profile?.ffUid
-      );
+      if (error) {
+        // A transient network/RLS error shouldn't bounce a fully set-up
+        // user to the completion form — let them through and rely on
+        // whatever page they land on to surface/retry the real error.
+        setFetchFailed(true);
+      } else {
+        setIncomplete(
+          !profile?.phoneNumber || !profile?.ffIgn || !profile?.ffUid
+        );
+      }
       setChecking(false);
     });
 
@@ -51,7 +59,7 @@ export default function ProfileCompletionGuard({
     );
   }
 
-  if (incomplete) {
+  if (incomplete && !fetchFailed) {
     return <Navigate to="/complete-profile" replace />;
   }
 

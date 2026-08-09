@@ -38,7 +38,10 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("tournaments");
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
     fetchIsAdmin(user.id).then(setIsAdmin);
   }, [user]);
 

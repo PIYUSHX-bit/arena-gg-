@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import OtpInput from "./OtpInput";
 
@@ -20,13 +20,21 @@ export default function PhoneLoginForm({ onSuccess }: PhoneLoginFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const cooldownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownIntervalRef.current) clearInterval(cooldownIntervalRef.current);
+    };
+  }, []);
 
   function startCooldown() {
+    if (cooldownIntervalRef.current) clearInterval(cooldownIntervalRef.current);
     setResendCooldown(30);
-    const interval = setInterval(() => {
+    cooldownIntervalRef.current = setInterval(() => {
       setResendCooldown((prev) => {
         if (prev <= 1) {
-          clearInterval(interval);
+          if (cooldownIntervalRef.current) clearInterval(cooldownIntervalRef.current);
           return 0;
         }
         return prev - 1;

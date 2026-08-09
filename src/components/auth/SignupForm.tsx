@@ -37,8 +37,8 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
       return;
     }
 
-    if (!phoneNumber.trim()) {
-      setError("Phone number is required.");
+    if (phoneNumber.replace(/\D/g, "").length < 10) {
+      setError("Enter a valid 10-digit phone number.");
       return;
     }
 

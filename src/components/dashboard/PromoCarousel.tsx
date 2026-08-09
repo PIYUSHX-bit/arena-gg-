@@ -34,6 +34,12 @@ const AUTO_SCROLL_MS = 3000;
 export default function PromoCarousel({ slides }: PromoCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  // Read inside the interval via a ref instead of depending on `active` in
+  // the effect below — otherwise every manual swipe (which also calls
+  // setActive) would tear down and restart the interval, so the 3s
+  // autoplay cadence would never actually elapse after any interaction.
+  const activeRef = useRef(active);
+  activeRef.current = active;
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -41,13 +47,13 @@ export default function PromoCarousel({ slides }: PromoCarouselProps) {
     const id = setInterval(() => {
       const track = trackRef.current;
       if (!track) return;
-      const next = (active + 1) % slides.length;
+      const next = (activeRef.current + 1) % slides.length;
       track.scrollTo({ left: next * track.clientWidth, behavior: "smooth" });
       setActive(next);
     }, AUTO_SCROLL_MS);
 
     return () => clearInterval(id);
-  }, [active, slides.length]);
+  }, [slides.length]);
 
   function handleScroll() {
     const track = trackRef.current;

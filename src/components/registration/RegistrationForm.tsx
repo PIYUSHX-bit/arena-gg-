@@ -137,6 +137,12 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
       return;
     }
 
+    const trimmedPlayer = { ign: player.ign.trim(), uid: player.uid.trim() };
+    if (!trimmedPlayer.ign || !trimmedPlayer.uid) {
+      setError("Enter your Free Fire IGN and UID.");
+      return;
+    }
+
     setSubmitting(true);
     // No squad-name input in the UI — the registering player's own IGN
     // identifies the entry (entries.squad_name is still NOT NULL and
@@ -144,21 +150,24 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
     const { entryId: newEntryId, error: createError } = await createEntry({
       tournamentId: tournament.id,
       userId: user.id,
-      squadName: player.ign,
-      players: [player],
+      squadName: trimmedPlayer.ign,
+      players: [trimmedPlayer],
     });
-
-    // Save the player's own IGN/UID back to their profile if it's new or
-    // changed, so the next registration auto-fills without retyping.
-    if (player.ign !== savedIgn || player.uid !== savedUid) {
-      updateProfile(user.id, { ffIgn: player.ign, ffUid: player.uid });
-    }
 
     setSubmitting(false);
 
     if (createError) {
       setError(createError);
       return;
+    }
+
+    // Save the player's own IGN/UID back to their profile if it's new or
+    // changed, so the next registration auto-fills without retyping. Only
+    // after the entry itself is confirmed created — an update here isn't
+    // user-facing, so a failure is silently skipped rather than blocking
+    // the flow the player is actually waiting on.
+    if (trimmedPlayer.ign !== savedIgn || trimmedPlayer.uid !== savedUid) {
+      updateProfile(user.id, { ffIgn: trimmedPlayer.ign, ffUid: trimmedPlayer.uid });
     }
 
     setEntryId(newEntryId);

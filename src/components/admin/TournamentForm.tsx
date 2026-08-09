@@ -103,6 +103,14 @@ export default function TournamentForm({
       return;
     }
 
+    const nextSlotsTotal = Number(slotsTotal) || 1;
+    if (initial && nextSlotsTotal < initial.slotsFilled) {
+      setError(
+        `Total slots can't be less than the ${initial.slotsFilled} already filled.`
+      );
+      return;
+    }
+
     setSubmitting(true);
     const { error: submitError } = await onSubmit({
       name,

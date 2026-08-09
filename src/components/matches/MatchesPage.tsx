@@ -66,8 +66,12 @@ export default function MatchesPage() {
     setLoading(true);
     fetchMyMatches(user.id, activeStatus).then(({ matches: m, error: err }) => {
       if (cancelled) return;
-      if (err) setError(err);
-      else setMatches(m);
+      if (err) {
+        setError(err);
+      } else {
+        setError(null);
+        setMatches(m);
+      }
       setLoading(false);
     });
 

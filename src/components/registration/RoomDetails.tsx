@@ -53,18 +53,34 @@ function RoomRow({
   );
 }
 
+// setTimeout's delay is a 32-bit signed int internally — anything past
+// ~24.8 days overflows and fires immediately instead of waiting. Chunk
+// long waits into steps under that limit so a match scheduled further
+// out doesn't unlock its room details early.
+const MAX_TIMEOUT_MS = 2_147_483_647;
+
 // Flips `setUnlocked` the moment `unlockAtMs` passes, for anyone with the
 // page open and waiting rather than reloading right at the unlock time.
 function useUnlocksAt(unlockAtMs: number) {
   const [unlocked, setUnlocked] = useState(() => Date.now() >= unlockAtMs);
+  // Bumped after each chunked timeout that wasn't the final one, purely to
+  // force the effect below to re-run and schedule the next chunk — since
+  // `setUnlocked(false)` when already false wouldn't otherwise re-trigger it.
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     if (unlocked) return;
     const msUntilUnlock = unlockAtMs - Date.now();
-    if (msUntilUnlock <= 0) return;
-    const timer = setTimeout(() => setUnlocked(true), msUntilUnlock);
+    if (msUntilUnlock <= 0) {
+      setUnlocked(true);
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (Date.now() >= unlockAtMs) setUnlocked(true);
+      else setTick((t) => t + 1);
+    }, Math.min(msUntilUnlock, MAX_TIMEOUT_MS));
     return () => clearTimeout(timer);
-  }, [unlockAtMs, unlocked]);
+  }, [unlockAtMs, unlocked, tick]);
 
   return unlocked;
 }
