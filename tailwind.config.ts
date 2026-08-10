@@ -33,14 +33,18 @@ export default {
           "50%": { opacity: "0.3" },
         },
         marquee: {
-          "0%": { transform: "translateX(100%)" },
-          "100%": { transform: "translateX(-100%)" },
+          // Content is rendered twice back to back; sliding exactly half
+          // its total width makes the loop point invisible, unlike a
+          // 100% -> -100% sweep (which spends most of its cycle with the
+          // text off-screen and looks like nothing is moving).
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
         },
       },
       animation: {
         shrink: "shrink 9s ease-in-out infinite",
         pulse2: "pulse2 1.6s ease-in-out infinite",
-        marquee: "marquee 14s linear infinite",
+        marquee: "marquee 16s linear infinite",
       },
     },
   },

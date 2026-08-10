@@ -73,6 +73,13 @@ button:disabled,
   .motion-safe-only {
     animation: none !important;
   }
+
+  /* The marquee's second copy of its text exists only to make the
+     scrolling loop seamless — with the animation off it would otherwise
+     just sit there duplicated right next to the first copy. */
+  .marquee-duplicate {
+    display: none;
+  }
 }
 
 /* Hides the scrollbar on horizontally-scrolling chip/tab rows while

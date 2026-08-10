@@ -16,8 +16,14 @@ export default function RulesBanner({ text, onClick }: RulesBannerProps) {
         <Megaphone size={16} className="text-white" />
       </IconBadge>
       <span className="flex-1 min-w-0 overflow-hidden">
-        <span className="inline-block whitespace-nowrap text-sm text-ink motion-safe-only animate-marquee">
-          {text}
+        {/* Rendered twice so the loop point is seamless — see the marquee
+            keyframes in tailwind.config.ts. The duplicate is hidden from
+            assistive tech so it isn't announced twice. */}
+        <span className="flex w-max whitespace-nowrap text-sm text-ink motion-safe-only animate-marquee">
+          <span className="pr-16">{text}</span>
+          <span className="pr-16 marquee-duplicate" aria-hidden="true">
+            {text}
+          </span>
         </span>
       </span>
     </button>
