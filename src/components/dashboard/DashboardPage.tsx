@@ -91,7 +91,11 @@ export default function DashboardPage() {
 
       <MyMatches onSelect={handleMatchStatusSelect} />
 
-      <EsportsGames modes={GAME_MODES} onSelect={handleGameModeSelect} />
+      <EsportsGames
+        modes={GAME_MODES}
+        onSelect={handleGameModeSelect}
+        onShopClick={() => navigate("/shop")}
+      />
 
       <BottomNav active={activeTab} onChange={handleTabChange} />
     </div>

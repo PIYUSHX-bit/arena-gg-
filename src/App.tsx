@@ -67,7 +67,11 @@ export default function App() {
           <Route path="/leaderboard" element={protect(<LeaderboardPage />)} />
           <Route path="/menu" element={protect(<MenuPage />)} />
           <Route path="/wallet" element={protect(<WalletPage />)} />
-          <Route path="/gift-cards" element={protect(<GiftCardsPage />)} />
+          <Route path="/shop" element={protect(<GiftCardsPage />)} />
+          {/* The Shop used to be reachable only as "gift cards" from the
+              Wallet page — keep the old path resolving instead of
+              404ing for anyone with it bookmarked. */}
+          <Route path="/gift-cards" element={<Navigate to="/shop" replace />} />
           <Route path="/statistics" element={protect(<StatisticsPage />)} />
           <Route path="/top-players" element={protect(<TopPlayersPage />)} />
           <Route path="/notifications" element={protect(<NotificationsPage />)} />

@@ -85,9 +85,7 @@ export default function GiftCardsPage() {
         <button onClick={() => navigate(-1)} aria-label="Back">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="font-display font-semibold text-xl">
-          Redeem for Gift Card
-        </h1>
+        <h1 className="font-display font-semibold text-xl">Shop</h1>
       </div>
 
       <div className="px-5 py-6">

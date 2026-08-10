@@ -265,7 +265,7 @@ export default function WalletPage() {
         </div>
 
         <button
-          onClick={() => navigate("/gift-cards")}
+          onClick={() => navigate("/shop")}
           className="w-full flex items-center gap-3 bg-gradient-to-br from-zone/15 via-surface to-surface border border-zone/30 rounded-lg px-4 py-3.5 mb-6 text-left"
         >
           <span className="shrink-0 w-9 h-9 rounded-full bg-zone/15 flex items-center justify-center">
