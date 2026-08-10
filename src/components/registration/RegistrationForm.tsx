@@ -73,7 +73,7 @@ export default function RegistrationForm({ tournament }: RegistrationFormProps) 
   // screen if already confirmed (same screen shown right after paying —
   // clicking "Join" again should surface the room info, not bounce the
   // player off to the My Matches list), or — once the match itself has
-  // completed — show the post-match vote-to-flag screen instead.
+  // completed — show the post-match vote-to-ban screen instead.
   //
   // Only ever runs once, on first mount (guarded by `step === "checking"`
   // below) — depending on the whole `user` object here would re-run it
